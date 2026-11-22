@@ -1,0 +1,34 @@
+================================================================================
+  BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG HUECITY
+  Thời gian: 2026-11-23 00:53:20
+================================================================================
+
+--- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
+  [PASS] Model tồn tại và hợp lệ: Hue_Vertical_Slice_Detailed.fbx
+  [PASS] Model tồn tại và hợp lệ: Character_Humanoid_Rigged.fbx
+  [PASS] Model tồn tại và hợp lệ: Vehicle_Taxi_Hue.fbx
+  [PASS] Model tồn tại và hợp lệ: Vehicle_Scooter.fbx
+  [PASS] Model tồn tại và hợp lệ: Vehicle_XichLo.fbx
+  [PASS] Model tồn tại và hợp lệ: Props_Street_Chairs.fbx
+  [PASS] Model tồn tại và hợp lệ: Map_Hue_Greybox.fbx
+  [PASS] Scene tồn tại: Phase1_Greybox.unity
+  [PASS] Scene tồn tại: Phase2_MapBlocking.unity
+  [FAIL] Scene tồn tại: Phase3_VerticalSlice.unity
+--- 2. Kiểm tra Logic Nhân vật (Player) ---
+  [PASS] Nhân vật khởi tạo đầy đủ 4 component: CharacterController, PlayerMovement, PlayerInputHandler, PlayerInteraction
+  [PASS] SetInputEnabled(false) reset triệt để toàn bộ MoveInput, Sprint, Jump
+  [PASS] Khôi phục trạng thái nhận Input thành công
+--- 3. Kiểm tra Vật lý Phương tiện (Vehicle Physics) ---
+  [PASS] Xe khởi tạo đầy đủ Rigidbody, CarController và VehicleSeat
+  [PASS] Trạng thái ban đầu xe chưa có người ngồi (IsOccupied == false)
+  [PASS] Lệnh phanh dừng khẩn cấp StopCar() thực thi an toàn
+--- 4. Kiểm tra Cơ chế Lên/Xuống xe (Enter/Exit Transition) ---
+  [PASS] Lên xe thành công: seat.IsOccupied == true
+  [PASS] Nhân vật được ẩn đi khi ngồi trong cabin
+  [PASS] Nhân vật được gắn làm con của Xe
+  [PASS] Sự kiện GameEvents.OnPlayerEnteredVehicle được phát thanh thành công
+  [FAIL] Ngoại lệ bất ngờ trong quá trình test: Object reference not set to an instance of an object
+
+================================================================================
+  TỔNG KẾT: 19 PASSED, 2 FAILED (Thời gian chạy: 47.8ms)
+================================================================================

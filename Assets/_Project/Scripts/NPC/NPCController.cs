@@ -93,10 +93,12 @@ namespace HueCity.NPC
             currentState = newState;
             stateTimer = 0f;
 
+            if (agent == null) agent = GetComponent<NavMeshAgent>();
+
             switch (newState)
             {
                 case NPCState.Wander:
-                    if (agent.isOnNavMesh)
+                    if (agent != null && agent.isOnNavMesh)
                     {
                         agent.isStopped = false;
                         agent.speed = walkSpeed;
@@ -105,14 +107,14 @@ namespace HueCity.NPC
                     break;
 
                 case NPCState.Activity:
-                    if (agent.isOnNavMesh)
+                    if (agent != null && agent.isOnNavMesh)
                     {
                         agent.isStopped = true;
                     }
                     break;
 
                 case NPCState.Alert:
-                    if (agent.isOnNavMesh)
+                    if (agent != null && agent.isOnNavMesh)
                     {
                         agent.isStopped = true;
                     }
@@ -122,7 +124,7 @@ namespace HueCity.NPC
                     break;
 
                 case NPCState.Flee:
-                    if (agent.isOnNavMesh)
+                    if (agent != null && agent.isOnNavMesh)
                     {
                         agent.isStopped = false;
                         agent.speed = runSpeed;
@@ -135,7 +137,7 @@ namespace HueCity.NPC
                     break;
 
                 case NPCState.Confront:
-                    if (agent.isOnNavMesh)
+                    if (agent != null && agent.isOnNavMesh)
                     {
                         agent.isStopped = true;
                     }
@@ -147,7 +149,7 @@ namespace HueCity.NPC
 
         private void UpdateWanderState()
         {
-            if (!agent.isOnNavMesh) return;
+            if (agent == null || !agent.isOnNavMesh) return;
 
             // Kiểm tra đến đích thì chọn điểm dạo mới
             if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.3f)
@@ -260,6 +262,9 @@ namespace HueCity.NPC
 
         private void PickNewWanderDestination()
         {
+            if (agent == null) agent = GetComponent<NavMeshAgent>();
+            if (agent == null || !agent.isOnNavMesh) return;
+
             Vector3 randomDirection = Random.insideUnitSphere * wanderRadius;
             randomDirection += transform.position;
 
@@ -271,6 +276,9 @@ namespace HueCity.NPC
 
         private void SetDestinationSafe(Vector3 target)
         {
+            if (agent == null) agent = GetComponent<NavMeshAgent>();
+            if (agent == null || !agent.isOnNavMesh) return;
+
             if (NavMesh.SamplePosition(target, out NavMeshHit hit, 10f, NavMesh.AllAreas))
             {
                 agent.SetDestination(hit.position);

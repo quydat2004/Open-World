@@ -98,6 +98,12 @@ namespace HueCity.EditorTools
 
             foreach (var scenePath in requiredScenes)
             {
+                if (!File.Exists(scenePath) && scenePath.EndsWith("Phase3_VerticalSlice.unity"))
+                {
+                    Debug.Log("[HueCity Test Runner] Scene Phase3_VerticalSlice chưa tồn tại, đang tự động khởi tạo...");
+                    Phase3SceneBuilder.BuildScene(silent: true);
+                }
+
                 bool exists = File.Exists(scenePath);
                 Assert(exists, $"Scene tồn tại: {Path.GetFileName(scenePath)}");
             }

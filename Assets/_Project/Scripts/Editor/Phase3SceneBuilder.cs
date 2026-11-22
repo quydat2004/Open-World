@@ -17,6 +17,11 @@ namespace HueCity.EditorTools
         [MenuItem("HueCity/Build Phase 3 Vertical Slice Scene", false, 30)]
         public static void BuildScene()
         {
+            BuildScene(false);
+        }
+
+        public static void BuildScene(bool silent)
+        {
             // 1. Tạo scene mới
             Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -82,7 +87,7 @@ namespace HueCity.EditorTools
             AssetDatabase.Refresh();
 
             Debug.Log($"<color=green>[HueCity]</color> Đã tạo thành công Scene Lát cắt dọc chi tiết tại: {scenePath}");
-            if (!Application.isBatchMode)
+            if (!Application.isBatchMode && !silent)
             {
                 EditorUtility.DisplayDialog("HueCity - Giai đoạn 3: Vertical Slice", 
                     "Đã hoàn thành Lát cắt dọc 1 ngã tư biểu tượng TP. Huế!\n\n" +

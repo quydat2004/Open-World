@@ -68,7 +68,14 @@ namespace HueCity.Vehicle
             currentOccupant = null;
 
             // Dừng xe và áp phanh
-            carController.StopCar();
+            if (carController == null)
+            {
+                carController = GetComponent<CarController>();
+            }
+            if (carController != null)
+            {
+                carController.StopCar();
+            }
 
             // Tính toán vị trí ra an toàn
             Vector3 spawnPosition = exitPoint != null ? exitPoint.position : transform.position + transform.right * -2f;
