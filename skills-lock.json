@@ -1,0 +1,773 @@
+{
+  "version": 1,
+  "skills": {
+    "analog-found-footage-horror": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/analog-found-footage-horror/SKILL.md",
+      "computedHash": "04b38404b03606a18d94592e741c22e00e4eeda884d5d888b699737e8a6cfc01"
+    },
+    "animation": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/animation/SKILL.md",
+      "computedHash": "9043bdffebb533708b3ad0312e0f0d135ea2ba9545c69d231b66c5a88abecbf7"
+    },
+    "anime-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/anime-style/SKILL.md",
+      "computedHash": "8ef716101592a1c2af963465dbca91ed6c65ce2dd2c02bd90e67acde1e53959c"
+    },
+    "apocalypse-worlds": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/apocalypse-worlds/SKILL.md",
+      "computedHash": "743855e253b16fb35abab33134772e10959549ef079d44474a013e841ccfbcf6"
+    },
+    "archviz": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/archviz/SKILL.md",
+      "computedHash": "629759e4f4a4d9636a468e856d96e69f3e1455eb1cd9681577512fa2a5da9de1"
+    },
+    "asset-optimization": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/asset-optimization/SKILL.md",
+      "computedHash": "de06c7e579835b0d587aa14748a9de9ed9e134fb6085f92b4590d32d074db6b8"
+    },
+    "biome-worlds": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/biome-worlds/SKILL.md",
+      "computedHash": "c0cf0f020bd2f744786d05465dd0c6f389537d26101928b5c33ec07a3908b48d"
+    },
+    "blender-modeler": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/blender-modeler/SKILL.md",
+      "computedHash": "442766ec950f2cc246d29776be6456fd4460b81b2850f6e08a011845c5afbe24"
+    },
+    "body-horror-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/body-horror-style/SKILL.md",
+      "computedHash": "1dff7f19f1eddd6853cbe738c0925cf7034f74c913d00e33f862a74d557d6ca6"
+    },
+    "brutalist-mood": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/brutalist-mood/SKILL.md",
+      "computedHash": "5dd903b93b695f91f502ed51e1f518f7d8b2786f8cbb3405ca7ee0207f0e5f5a"
+    },
+    "build-gtk": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/build-gtk/SKILL.md",
+      "computedHash": "2189e6fc5657881a79f700b17d2e9a0d5daa8a04a9b79c6acdd83b37cab06a47"
+    },
+    "build-live-game": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/build-live-game/SKILL.md",
+      "computedHash": "2ed6263855eae8f81632892f8f74c4a4f30fd4e3a366efd726b0034526bb2ce3"
+    },
+    "build-multiplayer-game": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/build-multiplayer-game/SKILL.md",
+      "computedHash": "1ed97a6718e34295e34ba9262c3dc73bba3168fa7e37958fe87563fbbf0f362f"
+    },
+    "camera-cinematography": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/camera-cinematography/SKILL.md",
+      "computedHash": "d9fb400988b2d76bd462d1cd0fa25761fb426dc437c8093ebb75432bbc7c9170"
+    },
+    "cartoon-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/cartoon-style/SKILL.md",
+      "computedHash": "d95ad86d04c234af94f2ac1b2ca42d2d51a514281ccd8f2b1b1d3924632faa0e"
+    },
+    "character-archetypes": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/character-archetypes/SKILL.md",
+      "computedHash": "109f15d593b347a24f598d593dd23b80aff4da503b2d697a5c290e157cddb8f2"
+    },
+    "character-artist": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/character-artist/SKILL.md",
+      "computedHash": "760574302b659fd2f09c4d4872a4cd4457da8be6c56523fbc6281611622b424c"
+    },
+    "chibi-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/chibi-style/SKILL.md",
+      "computedHash": "f61501f42185e84e8280207174c6212659bec9afb60480f657fd6f74a390c5de"
+    },
+    "cloth-sim": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/cloth-sim/SKILL.md",
+      "computedHash": "0b10c10db9c57dfcccc00d19039f0f8641abd931d1154a35ecf3362cb1e50971"
+    },
+    "collision-proxy": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/collision-proxy/SKILL.md",
+      "computedHash": "41f169f7046c7180c354f7f7647685f7a60f98890c7b6f2086f51fd17e139eee"
+    },
+    "comic-book-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/comic-book-style/SKILL.md",
+      "computedHash": "48affca1215b70363d73fb616733c5efcf8ba4b16802bb9094b697355543b19d"
+    },
+    "compositing": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/compositing/SKILL.md",
+      "computedHash": "e9e5b97ddfd6a3559c8a549caee105fdfac2171dffea907e47c4b352bf2fdf74"
+    },
+    "configure-2d-pixel-perfect": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/configure-2d-pixel-perfect/SKILL.md",
+      "computedHash": "4199835fcd288e3f31b67bd39beb70c9d154dbeae35768eaa5eb4a5c9ffe7a3a"
+    },
+    "cosmic-eldritch-horror": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/cosmic-eldritch-horror/SKILL.md",
+      "computedHash": "0c3c0ae38b910c26aed4e96a54fc0473959ca70ab6206f294d45ebd24508127e"
+    },
+    "cozy-wholesome-mood": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/cozy-wholesome-mood/SKILL.md",
+      "computedHash": "828a6eefcefb27a6b9309bf1dd6cf44815bd6489e3277a8cc8498e7e0f574353"
+    },
+    "craft-game-floors": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/craft-game-floors/SKILL.md",
+      "computedHash": "1b3ffb14c8053eeee7e78df9682fff3c651a09db3178438f25353150b5957bc1"
+    },
+    "create-2d-physics": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-2d-physics/SKILL.md",
+      "computedHash": "b93ae325d2f1e7e35e2a8f266fba18e82ee1ff7858e16d107a95fea72f0fa53a"
+    },
+    "create-tile-palette-or-rule-tiles": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-tile-palette-or-rule-tiles/SKILL.md",
+      "computedHash": "ae678b3423bcd97310be07043197f9fe454ca2a9ccfdc886230d60f9f266d24c"
+    },
+    "create-ui": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-ui/SKILL.md",
+      "computedHash": "d434f612509709d2deaca14d24ab7af809815880ed06f041174c462b7baac7de"
+    },
+    "create-xr": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-xr/SKILL.md",
+      "computedHash": "d5d07d7ddbfbea58308d591ecfbf707ebbfd4b1db8b6a514bfe19824744f274e"
+    },
+    "creature-artist": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/creature-artist/SKILL.md",
+      "computedHash": "c98aa2eb26889863e160f33f7f4587f6eecd4206586a92824aa02be7bdb9b9e1"
+    },
+    "dark-gritty-mood": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/dark-gritty-mood/SKILL.md",
+      "computedHash": "6527a61194bb2d2416575f8456ee0f1a376addc30caf69c329de3badcc65ba84"
+    },
+    "dream-surreal-mood": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/dream-surreal-mood/SKILL.md",
+      "computedHash": "8fde7564e8980fc3b016440428cd374180280ce8a55b2fc2403222f63bb6784a"
+    },
+    "dream-weirdcore-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/dream-weirdcore-style/SKILL.md",
+      "computedHash": "0dea273a9f9aba531f8e2b93136a1fc1054c4092dff31e248bcc1739a294bbb5"
+    },
+    "environment-artist": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/environment-artist/SKILL.md",
+      "computedHash": "d9744db1b5f96c9c92330c49459599e226a9b73f3f6a137057f27e61d9521633"
+    },
+    "export-pipeline": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/export-pipeline/SKILL.md",
+      "computedHash": "656def1f9294172babbfdd36f152cfb0cba1451a35de958373c637fd0dd36ec0"
+    },
+    "fantasy-worlds": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/fantasy-worlds/SKILL.md",
+      "computedHash": "64a0eccfbb00fcb71965ecd26b08697d3e02130a83478729bdb310d3ac84678e"
+    },
+    "fix-3d-physics-collisions": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/fix-3d-physics-collisions/SKILL.md",
+      "computedHash": "16ef35e07bb1dda641b48d1e2f90ba295e7c720158bd712f15c0975fd8091359"
+    },
+    "folk-horror-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/folk-horror-style/SKILL.md",
+      "computedHash": "7ffb6edd38e8448bdbe2883dab4a8ff58c168b0d6f50c0e8a0740f32881a0251"
+    },
+    "frutiger-aero-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/frutiger-aero-style/SKILL.md",
+      "computedHash": "03ee47631e0f9046799a03a18eb6125eb717a90ab8bd89a8f5de6ae0db86a7fe"
+    },
+    "generate-editor-search-query": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/generate-editor-search-query/SKILL.md",
+      "computedHash": "d11c94fa8464cfa9595a570bfcdb1525730d058dd897cbb347183acd48d0f9eb"
+    },
+    "genre-action-combat": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-action-combat/SKILL.md",
+      "computedHash": "c23543ec86ca55f9904da4868a588db18872d060cfc8aed43f95f6f61e2e73c9"
+    },
+    "genre-card-party-idle": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-card-party-idle/SKILL.md",
+      "computedHash": "8cfe59724c65ce91b4ff5dd41632b9d2d650d57841feb1f9a17b7094cda89422"
+    },
+    "genre-metroidvania-roguelike": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-metroidvania-roguelike/SKILL.md",
+      "computedHash": "9f80bef402284d8acda9ff166e73645f139838a4127638086ab981d0ca1a44e4"
+    },
+    "genre-narrative-vn": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-narrative-vn/SKILL.md",
+      "computedHash": "c7b41d4caab71c76d3a30e8971a1becab05938e34eb650b4d5fff7cfeeb6685d"
+    },
+    "genre-open-world-sandbox": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-open-world-sandbox/SKILL.md",
+      "computedHash": "6223b98960a6e9b32a4547f3b1f2a2a07e3c810b381be5f4fb6d953d7a1247f8"
+    },
+    "genre-puzzle-platformer": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-puzzle-platformer/SKILL.md",
+      "computedHash": "fc5d9a348460eebdcba362a8034d1dc4cb87b9aae82d2ad86aba211a8592c985"
+    },
+    "genre-racing-sports": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-racing-sports/SKILL.md",
+      "computedHash": "6e5f62f6de4ac04664d7da2bb089a61e93fb720751d966fe2cb1f417def7a9b0"
+    },
+    "genre-rpg": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-rpg/SKILL.md",
+      "computedHash": "d879adf62d84e5116b093c6053d0ca69f40a94265e971e518b6326e50a1edc7f"
+    },
+    "genre-shooter": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-shooter/SKILL.md",
+      "computedHash": "2b1289218f3c58f543f16b5ec469fe508ad2df61b4b0e693c3aa19edde5d7d88"
+    },
+    "genre-soulslike": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-soulslike/SKILL.md",
+      "computedHash": "4e9f09981675ff25f237c0ed3a172fef5993d7777b9a1d578463ef090f902983"
+    },
+    "genre-stealth": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-stealth/SKILL.md",
+      "computedHash": "9d510e63cf8ea1b6ed8a1ee3d89b890d6ebaca4b9c5d82621d97108e72556183"
+    },
+    "genre-strategy-sim": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-strategy-sim/SKILL.md",
+      "computedHash": "5f83b2e83f8adc929e363977055147b4bb39be63337f6552af56ff25beb3a20a"
+    },
+    "genre-survival": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/genre-survival/SKILL.md",
+      "computedHash": "1847dd7183b000126cc7c0721663bd8baeb820d14ceb38f4afbf7d2ad08860ce"
+    },
+    "geometry-nodes": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/geometry-nodes/SKILL.md",
+      "computedHash": "d23183346cd9151ace5870ed69239c660c279b7efaf35b1c08f2c2dd60e8b6ee"
+    },
+    "godot-export": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/godot-export/SKILL.md",
+      "computedHash": "fbcffae8d4ddd34806cdef8382de5e6cbd1f4b527100d258d3c31eba9990be56"
+    },
+    "hair-groom": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/hair-groom/SKILL.md",
+      "computedHash": "a86ced329465d8cc243b9a131f0468d56fcb571b3f2d17f8fe34dc00b256a3c6"
+    },
+    "hand-painted-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/hand-painted-style/SKILL.md",
+      "computedHash": "a1ae8d92d6eda5ed596fde15947e27ce8814c65d70e8c97e69237a0c695cf534"
+    },
+    "hard-surface": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/hard-surface/SKILL.md",
+      "computedHash": "edc0c7defae5dbcf894ea4f8837b29564cdc51245b8b85e34078aa29ef685848"
+    },
+    "hd-2d-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/hd-2d-style/SKILL.md",
+      "computedHash": "24cb7b34d44a067b0780318fc5187ef3b5861afcc322dddd19254c9a86747d98"
+    },
+    "historical-worlds": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/historical-worlds/SKILL.md",
+      "computedHash": "6486ce50f0a568909f916c30cdd0d0f3f21fb2c575197042ca2d1924b8baec6d"
+    },
+    "horror-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/horror-style/SKILL.md",
+      "computedHash": "dee46b340661dd688e56f6e88f614fe3bfae8d70421db86dd8c9fe07f76594a6"
+    },
+    "implement-in-app-purchases": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/implement-in-app-purchases/SKILL.md",
+      "computedHash": "d443246aba03a949945a41fa08a1dfed9572295f39b972aa8e48fd6e2b91e812"
+    },
+    "import-and-optimize-cad-models": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/import-and-optimize-cad-models/SKILL.md",
+      "computedHash": "09f9a216f47cb4d175aa5f40c2a75da02952a399a57246a166335b4ca5d3e5db"
+    },
+    "indie-horror-aesthetics": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/indie-horror-aesthetics/SKILL.md",
+      "computedHash": "8b74cf27afa26c4bef5bd099ef8353f1c92ccbfbb01e29085fad3959d2593999"
+    },
+    "initialize-ai-navigation": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/initialize-ai-navigation/SKILL.md",
+      "computedHash": "e007fd22e27cffafee18632c97bc899fbd69d8eb8f6ebf4d83d43780c9e26084"
+    },
+    "instrument-game-telemetry": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/instrument-game-telemetry/SKILL.md",
+      "computedHash": "9856649fe07c7756dea4766c828ee96cc9d9f2bc02a28091998ad99692934da8"
+    },
+    "isometric-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/isometric-style/SKILL.md",
+      "computedHash": "b70613c6ff8546ec8a77955c26455249df65add1a62cc685f9bef77fdb78b0dd"
+    },
+    "levelplay-unity-integration": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/levelplay-unity-integration/SKILL.md",
+      "computedHash": "a5f98cbc3ee66c9b2a9c2786d0e7144b7c9754a836fe8b1358a77a4c88ca4506"
+    },
+    "lighting": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/lighting/SKILL.md",
+      "computedHash": "f27b4e0898c0f3e95ecaa655477ae090fbf6af934ea988fdfa712ba8ea89f768"
+    },
+    "liminal-space-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/liminal-space-style/SKILL.md",
+      "computedHash": "8f86840925d13b3a2acfaa8236a9b938aa2166f4cbe9e97e6de55cbcec6a284e"
+    },
+    "localize-unity-project": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/localize-unity-project/SKILL.md",
+      "computedHash": "2bb402254991df8b604127131e0def471e3a6a7fa3cc0eb87e211ad0f1c42443"
+    },
+    "lod-pipeline": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/lod-pipeline/SKILL.md",
+      "computedHash": "7babb59cd0af52e73e02b8d17729f986e338b8b29b7e466b41d99d8f4efb2c34"
+    },
+    "lookdev": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/lookdev/SKILL.md",
+      "computedHash": "157809685118897f099248faecb83e5b287ca5ae9311cb4d64041e14bac271e9"
+    },
+    "lowpoly-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/lowpoly-style/SKILL.md",
+      "computedHash": "1a9b496ff035b5e95c90d7e4e49b7fbfef4d4bf94825749ae1a2b7aebc4542f8"
+    },
+    "manage-cloud-build": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/manage-cloud-build/SKILL.md",
+      "computedHash": "dbc909c61a2cc7ff310ced22baee7b5cecbec82366a16d95765fc5a2ed203e8d"
+    },
+    "manage-sprite-atlas": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/manage-sprite-atlas/SKILL.md",
+      "computedHash": "1872f803e8e24b2db7b2ddf12645cca9537d39538a2b8a7cbe832bfc1894bdf9"
+    },
+    "manga-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/manga-style/SKILL.md",
+      "computedHash": "41e1423c28cea8f09c12f7e08e86098bd307c9c9cc1e9c6968a098e20ec50d7f"
+    },
+    "mascot-puppet-horror": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/mascot-puppet-horror/SKILL.md",
+      "computedHash": "4c79b3bc711525fe4b58e5cc86b8448383e9c534476eff25585ca70b66e6c005"
+    },
+    "materials": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/materials/SKILL.md",
+      "computedHash": "6ef378292456944e0b33456f7e7aa87e89792223a86deffb947b952a6ffffdc4"
+    },
+    "migrate-birp-to-urp": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/migrate-birp-to-urp/SKILL.md",
+      "computedHash": "c07ae366ae7575d729cdbc741fa1e76ce045c0cd5e4a2fb593f0c357462bcb85"
+    },
+    "minimalist-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/minimalist-style/SKILL.md",
+      "computedHash": "d09c9fbc5678be347cad2ea5c40c4614b3c637c472b65bdf57dad948e01cbbe2"
+    },
+    "neon-retrofuturism": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/neon-retrofuturism/SKILL.md",
+      "computedHash": "c6e3342ae2d6011e75126ac57b3888b20eef75166199d6be75f03d47490ea8a6"
+    },
+    "new-unity-project": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/new-unity-project/SKILL.md",
+      "computedHash": "0b578dfcd3598d137984b4dbf227d4a404974552b6cb772063f75b4882405520"
+    },
+    "noir-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/noir-style/SKILL.md",
+      "computedHash": "8acfcfd226082e651d47627b5e2bdee803b505e8f0c6a61764f460f49e4ebda1"
+    },
+    "optimize-audio": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/optimize-audio/SKILL.md",
+      "computedHash": "a85ffead9c5da575108a6c1983312d91461e45248606900c20c75755f5caf4a1"
+    },
+    "optimize-text-mesh-pro": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/optimize-text-mesh-pro/SKILL.md",
+      "computedHash": "f75d140c367a3d08b2eb0a4b3c1e1b455ebd0a507d9bc4edf56d244054c19b90"
+    },
+    "optimize-web": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/optimize-web/SKILL.md",
+      "computedHash": "0eb66418f3fdcc21b0bb52d3f1319718dc48457ca5e978a31d638936f63520e6"
+    },
+    "painterly-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/painterly-style/SKILL.md",
+      "computedHash": "74b12123a7d349e90ee586ca0a4661e676c1798c3fbdae53766a814a64abe735"
+    },
+    "physics-sim": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/physics-sim/SKILL.md",
+      "computedHash": "1ffb7cee1851af924521ac3335058611ec1000a9e3af92302f8ad05315a13457"
+    },
+    "pixel-art-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/pixel-art-style/SKILL.md",
+      "computedHash": "93a7864e33ab486200154d2fb892cd96d320de46da23985b79c8ca5ed558d46f"
+    },
+    "procedural-modeling": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/procedural-modeling/SKILL.md",
+      "computedHash": "21c888d392c0ed3550c52cc45abcfbd003b0ea1d3821d43aa56b15165f24d0dc"
+    },
+    "project-auditor-fixes": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/project-auditor-fixes/SKILL.md",
+      "computedHash": "900a43a90e4e06f3677cf42c49d05a2bb8490edaff6d02bfb6935d0c6f12a2fb"
+    },
+    "prop-artist": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/prop-artist/SKILL.md",
+      "computedHash": "aa8321f42075f2f607fcb94dca1993d297f4ffac2fe58bd898fd68685d81ea5d"
+    },
+    "psx-horror-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/psx-horror-style/SKILL.md",
+      "computedHash": "ac8e1fff25f500aea13fcb534747248e454919f406f9563b158347e9494a1f63"
+    },
+    "qa-review": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/qa-review/SKILL.md",
+      "computedHash": "a92765c5040769fda620bdc14bbb9a25cc94e9a691f294a1755c3f15a0d544ba"
+    },
+    "realistic-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/realistic-style/SKILL.md",
+      "computedHash": "0908c1d6e18fa11b1f9f0dbef2fae78d8370604becbbf82ba23e3fa48ae4b82d"
+    },
+    "rendering": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/rendering/SKILL.md",
+      "computedHash": "02c8c26f7752658b0d162ca7bcf538f7cfe5a2ad083525f364cc8412c68224ae"
+    },
+    "retopology": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/retopology/SKILL.md",
+      "computedHash": "40689ed165ca237fd9d45ffabf08f754e0ca6c7c48d0234bd5272d799401931a"
+    },
+    "retro-16bit-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/retro-16bit-style/SKILL.md",
+      "computedHash": "cdd39fab4cf7c9ed5dc832bb5279b2ea468f2bac6927ff3861ebd25e32a2d7c8"
+    },
+    "retro-8bit-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/retro-8bit-style/SKILL.md",
+      "computedHash": "7eb79a69309bf5028e1bbe8c3019734d898569929e12d0cd98e102eed6283dba"
+    },
+    "rigging": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/rigging/SKILL.md",
+      "computedHash": "2d64f7c1d696c5d5f4f8d93b71c755af7e0e4c410b4c7b770f2725d8346421e6"
+    },
+    "route-audio-to-mixer-groups": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/route-audio-to-mixer-groups/SKILL.md",
+      "computedHash": "2626f922dd583617b376b4d22e6bd2fd8dbdb830472c006a25b9325f5fe630c1"
+    },
+    "scene-assembly": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/scene-assembly/SKILL.md",
+      "computedHash": "369e53f759d13fb0689213654c7e9a9e09e4dd8b9de8b8027944bdafe7678082"
+    },
+    "sci-fi-punk-worlds": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/sci-fi-punk-worlds/SKILL.md",
+      "computedHash": "289f2fe8309798456bf53642de86febbc4657a7bf6bc9370602eafb859fc481a"
+    },
+    "sculpting": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/sculpting/SKILL.md",
+      "computedHash": "38b36a1d8c28c04b8379171a37c9202af3eecdc219aaf9161fb0e3a13652ab38"
+    },
+    "set-dressing": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/set-dressing/SKILL.md",
+      "computedHash": "0e2198bb52aa780b6d2ed131e65624a79bd905bf6e6fa0152c349fde4e9e1207"
+    },
+    "setup-vivox-voice-chat": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/setup-vivox-voice-chat/SKILL.md",
+      "computedHash": "c1c5be988045959af02a1fa9668572ea101bdf08e3fc0b1486413697d12dfe4c"
+    },
+    "shader-graph-create-custom-node": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/shader-graph-create-custom-node/SKILL.md",
+      "computedHash": "1c04e2f454c978c0e9f6fd73287f3f5cdbb3d862bb149e7407c4c71eaa75d1b5"
+    },
+    "sprite-editor": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/sprite-editor/SKILL.md",
+      "computedHash": "315d4d274dbd87fcb03e56df58b8a9c9ccfac62134a8c928f563fe20594c708e"
+    },
+    "sprite-segment-3x3grid": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/sprite-segment-3x3grid/SKILL.md",
+      "computedHash": "2a2ccdd85abf6ad691cd7131e5670ac04052aa9a6283b5b5d7c9a901eb3882e7"
+    },
+    "stop-motion-craft-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/stop-motion-craft-style/SKILL.md",
+      "computedHash": "2bb5c0c51a81f5cd43eee42bbcbbbc1c275d54e46fcd16fc5fbbc62edd06666c"
+    },
+    "stylized-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/stylized-style/SKILL.md",
+      "computedHash": "a58b65659eb2fd4f9b809fe8954c4ebd8fa7d935af965b4510992a7d84df86eb"
+    },
+    "texture-workflow": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/texture-workflow/SKILL.md",
+      "computedHash": "68a4dcaa6f010f681f08e738092dae44493855d8ca58cb263e98de8faa1876a6"
+    },
+    "unity-cli": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/unity-cli/SKILL.md",
+      "computedHash": "54426f9b42a1f9adfaea4d5d8c0a45a28460bbe110915f2220302956a8728b8d"
+    },
+    "unity-export": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/unity-export/SKILL.md",
+      "computedHash": "085703c38f15bf72da313876ba896f0fd53d3141e85abb060171a1bc1c3f8be5"
+    },
+    "unity-package-management": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/unity-package-management/SKILL.md",
+      "computedHash": "09cc77995dd6e266145d6bd198c773b6e59fd6f0b8f554f87cc3661f55a45e89"
+    },
+    "unity-pipeline": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/unity-pipeline/SKILL.md",
+      "computedHash": "57aad5049db351bed6b14494938d7946ffabc22d9820ae7cd0f44735de20e8cc"
+    },
+    "unreal-export": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/unreal-export/SKILL.md",
+      "computedHash": "7053ceae62d2a47cd1ec37030a84f8df8d96bb4af27291f867e916cc87fc54a9"
+    },
+    "urp-postprocessing": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/urp-postprocessing/SKILL.md",
+      "computedHash": "98204a2b6e5d0224ff6899c2b5f947afe887fb0a8f006f4717c7e8b8db2abbd9"
+    },
+    "uv-workflow": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/uv-workflow/SKILL.md",
+      "computedHash": "35189ad91737c500b735dc531975f5e10b80319a6879f48f6c07a18c524ef538"
+    },
+    "validate-urp-render-graph-renderer-feature": {
+      "source": "Unity-Technologies/skills",
+      "sourceType": "github",
+      "skillPath": "skills/validate-urp-render-graph-renderer-feature/SKILL.md",
+      "computedHash": "417721923fd0fed822cdd408f2b998fee8920ec6f94c82072ec6b97f8cb13993"
+    },
+    "vector-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/vector-style/SKILL.md",
+      "computedHash": "7748981ce04742e2931a0fb9c22548ca9bc968724e44bbb63f8583d6d00936d2"
+    },
+    "vegetation-artist": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/vegetation-artist/SKILL.md",
+      "computedHash": "8e8e50f9818d7c72f62ff11fbc7ad8dd75f6ea7f87b9782daeac84ff5f209278"
+    },
+    "vehicle-artist": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/vehicle-artist/SKILL.md",
+      "computedHash": "673c12cc77a6c97bc5cec86889c260b70de1fa72b2e49c132ed213c1bebb2430"
+    },
+    "vfx-fx": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/vfx-fx/SKILL.md",
+      "computedHash": "0971baebab5600a84d5d93382ba5f2ce7c7d342a9de26983f90051b6d3ccd426"
+    },
+    "visual-console-eras": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/visual-console-eras/SKILL.md",
+      "computedHash": "accc85c29c23b2ccf1b0d651a26b018fd4b09e2158256afe02ccb1efe8855ed9"
+    },
+    "voxel-style": {
+      "source": "arjun988/blender-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/voxel-style/SKILL.md",
+      "computedHash": "811547acff7c6d36343dcf8e229c641b81c7b6a3741dc9af8b00e1dfd3557f43"
+    }
+  }
+}
