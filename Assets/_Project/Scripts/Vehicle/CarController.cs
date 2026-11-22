@@ -161,6 +161,14 @@ namespace HueCity.Vehicle
             SyncWheelMesh(rearWheels.rightWheel, rearWheels.rightMesh);
         }
 
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision.relativeVelocity.magnitude > 4.5f)
+            {
+                HueCity.NPC.WorldStimulusManager.EmitStimulus(collision.contacts[0].point, 28f, HueCity.NPC.StimulusType.CarCrash, gameObject);
+            }
+        }
+
         private void SyncWheelMesh(WheelCollider col, Transform mesh)
         {
             if (col == null || mesh == null) return;

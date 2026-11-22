@@ -104,6 +104,13 @@ namespace HueCity.Vehicle
             float steer = Input.GetAxis("Horizontal");
             bool brake = Input.GetKey(KeyCode.Space);
 
+            // Bấm còi xe (Phím H) để phát âm thanh kích thích tới NPC
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                HueCity.NPC.WorldStimulusManager.EmitStimulus(transform.position, 20f, HueCity.NPC.StimulusType.CarHorn, gameObject);
+                Debug.Log("<color=yellow>[Car]</color> Bấm còi inh ỏi (Beep Beep)! Các NPC xung quanh sẽ quay đầu nhìn.");
+            }
+
             carController.SetInput(throttle, steer, brake);
         }
     }

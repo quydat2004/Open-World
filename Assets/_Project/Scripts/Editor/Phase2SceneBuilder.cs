@@ -1,11 +1,13 @@
 #if UNITY_EDITOR
 using Cinemachine;
 using HueCity.Camera;
+using HueCity.NPC;
 using HueCity.Player;
 using HueCity.Vehicle;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 namespace HueCity.EditorTools
@@ -22,10 +24,14 @@ namespace HueCity.EditorTools
             GameObject lightObj = new GameObject("Directional Light");
             Light light = lightObj.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.intensity = 1.2f;
+            light.intensity = 1.25f;
             lightObj.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
 
-            // 3. Load và đưa Model Bản đồ TP. Huế vào Scene
+            // 3. Hệ thống Quản lý Giác quan thế giới (WorldStimulusManager)
+            GameObject stimulusObj = new GameObject("WorldStimulusManager");
+            stimulusObj.AddComponent<WorldStimulusManager>();
+
+            // 4. Load và đưa Model Bản đồ TP. Huế vào Scene
             string fbxPath = "Assets/_Project/Models/Map_Hue_Greybox.fbx";
             GameObject mapPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
 
@@ -36,8 +42,8 @@ namespace HueCity.EditorTools
                 mapInstance.name = "Hue_Map_Blocking";
                 mapInstance.transform.position = Vector3.zero;
 
-                // Gắn MeshCollider cho các bộ phận của bản đồ
-                SetupColliders(mapInstance);
+                // Gắn MeshCollider và đánh dấu Static cho NavMesh
+                SetupCollidersAndStatic(mapInstance);
             }
             else
             {
@@ -45,52 +51,61 @@ namespace HueCity.EditorTools
                 GameObject fallbackGround = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 fallbackGround.transform.localScale = new Vector3(500f, 1f, 500f);
                 fallbackGround.transform.position = new Vector3(0f, -0.5f, 0f);
+                GameObjectUtility.SetStaticEditorFlags(fallbackGround, StaticEditorFlags.NavigationStatic);
             }
 
-            // 4. Tạo Nhân vật (Player với Mesh Rigged hoặc Capsule fallback)
-            GameObject player = CreatePlayerObject(new Vector3(0f, 1.2f, 0f));
+            // 5. Bake NavMesh tự động cho bản đồ
+            UnityEditor.AI.NavMeshBuilder.BuildNavMesh();
+            Debug.Log("[HueCity] Đã bake xong NavMesh cho vỉa hè và mạng lưới đường sá.");
 
-            // 5. Tạo Xe hơi Taxi Huế (Xanh SM)
+            // 6. Tạo Nhân vật (Player) tại ngã ba Lê Lợi - Hùng Vương
+            GameObject player = CreatePlayerObject(new Vector3(0f, 1.2f, 0f));
+            player.tag = "Player";
+
+            // 7. Tạo Xe hơi Taxi Huế (Xanh SM)
             GameObject car = CreateTaxiObject(new Vector3(4f, 0.5f, 6f));
 
-            // 6. Đặt Xe máy (Scooter), Xích lô (Cyclo) và Bộ bàn ghế vỉa hè trang trí
+            // 8. Đặt Xe máy, Xích lô và Bộ bàn ghế vỉa hè (gắn sẵn ActivityPoint)
             SpawnDecorativeProps();
 
-            // 7. Thiết lập Cinemachine Camera
+            // 9. Tạo hệ thống NPC đám đông (18 NPC với FSM 5 trạng thái + Pool Manager)
+            SetupNPCCrowd(player);
+
+            // 10. Thiết lập Cinemachine Camera
             CreateCameraSetup(player, car);
 
-            // 8. Lưu Scene vào Assets/_Project/Scenes/Phase2_MapBlocking.unity
+            // 11. Lưu Scene vào Assets/_Project/Scenes/Phase2_MapBlocking.unity
             string scenePath = "Assets/_Project/Scenes/Phase2_MapBlocking.unity";
             EditorSceneManager.SaveScene(newScene, scenePath);
             AssetDatabase.Refresh();
 
-            Debug.Log($"<color=green>[HueCity]</color> Đã tạo thành công Scene Giai đoạn 2 tại: {scenePath}");
+            Debug.Log($"<color=green>[HueCity]</color> Đã tạo thành công Scene Giai đoạn 2 kèm Đám đông NPC tại: {scenePath}");
             if (!Application.isBatchMode)
             {
-                EditorUtility.DisplayDialog("HueCity - Giai đoạn 2", 
-                    "Đã khởi tạo thành công Scene Bản đồ thực tế TP. Huế!\n" +
-                    "- Đường sá đã được mở rộng +20% phục vụ lái xe tốc độ cao.\n" +
-                    "- Vị trí xuất phát: Ngã ba Lê Lợi & Hùng Vương (chân cầu Trường Tiền).\n" +
-                    "Bấm Play để lái xe khám phá cung đường!", "Bắt đầu Playtest");
+                EditorUtility.DisplayDialog("HueCity - Giai đoạn 2 & NPC Crowds", 
+                    "Đã khởi tạo thành công Bản đồ TP. Huế + Đám đông NPC kiểu GTA!\n" +
+                    "- Đường sá mở rộng +20% phục vụ lái xe tốc độ cao.\n" +
+                    "- 18 NPC độc lập với FSM 5 trạng thái (Wander, Sit, Alert, Flee, Confront).\n" +
+                    "- Thử bấm còi (phím H) khi lái xe hoặc đâm xe để quan sát phản ứng của NPC!\n" +
+                    "- Vị trí: Chân cầu Trường Tiền / Ngã ba Lê Lợi & Hùng Vương.", "Bắt đầu Playtest");
             }
         }
 
-        private static void SetupColliders(GameObject mapRoot)
+        private static void SetupCollidersAndStatic(GameObject mapRoot)
         {
             MeshFilter[] meshFilters = mapRoot.GetComponentsInChildren<MeshFilter>(true);
             foreach (var mf in meshFilters)
             {
                 string objName = mf.gameObject.name;
                 
-                // Gắn MeshCollider cho mặt đường và vỉa hè
                 if (objName.Contains("Road") || objName.Contains("Sidewalk") || objName.Contains("Buildings"))
                 {
                     MeshCollider mc = mf.gameObject.GetComponent<MeshCollider>();
-                    if (mc == null)
-                    {
-                        mc = mf.gameObject.AddComponent<MeshCollider>();
-                    }
+                    if (mc == null) mc = mf.gameObject.AddComponent<MeshCollider>();
                     mc.sharedMesh = mf.sharedMesh;
+
+                    // Đánh dấu Static cho NavMesh
+                    GameObjectUtility.SetStaticEditorFlags(mf.gameObject, StaticEditorFlags.NavigationStatic);
                 }
             }
         }
@@ -100,7 +115,6 @@ namespace HueCity.EditorTools
             GameObject player = new GameObject("Player_Character");
             player.transform.position = spawnPos;
 
-            // Kiểm tra xem có model nhân vật Rigged không
             string charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
             GameObject charPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath);
 
@@ -114,7 +128,6 @@ namespace HueCity.EditorTools
             }
             else
             {
-                // Fallback capsule
                 GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 capsule.name = "Visual";
                 capsule.transform.SetParent(player.transform);
@@ -122,7 +135,6 @@ namespace HueCity.EditorTools
                 Object.DestroyImmediate(capsule.GetComponent<Collider>());
             }
 
-            // Components
             CharacterController cc = player.AddComponent<CharacterController>();
             cc.height = 1.8f;
             cc.radius = 0.35f;
@@ -153,25 +165,21 @@ namespace HueCity.EditorTools
                 car.transform.position = spawnPos;
             }
 
-            // Rigidbody
             Rigidbody rb = car.GetComponent<Rigidbody>();
             if (rb == null) rb = car.AddComponent<Rigidbody>();
             rb.mass = 1450f;
             rb.drag = 0.05f;
             rb.angularDrag = 1.6f;
 
-            // Chassis Box Collider
             BoxCollider col = car.GetComponent<BoxCollider>();
             if (col == null) col = car.AddComponent<BoxCollider>();
             col.size = new Vector3(1.85f, 0.9f, 4.4f);
             col.center = new Vector3(0f, 0.65f, 0f);
 
-            // Exit Point
             GameObject exitPt = new GameObject("DriverExitPoint");
             exitPt.transform.SetParent(car.transform);
             exitPt.transform.localPosition = new Vector3(-2.2f, 0f, 0f);
 
-            // Tìm hoặc tạo WheelColliders
             float trackHalf = 0.85f;
             float baseHalf = 1.35f;
             WheelCollider flCol = CreateWheelCollider(car.transform, "WheelCol_FL", new Vector3(-trackHalf, 0.34f, baseHalf));
@@ -179,7 +187,6 @@ namespace HueCity.EditorTools
             WheelCollider rlCol = CreateWheelCollider(car.transform, "WheelCol_RL", new Vector3(-trackHalf, 0.34f, -baseHalf));
             WheelCollider rrCol = CreateWheelCollider(car.transform, "WheelCol_RR", new Vector3(trackHalf, 0.34f, -baseHalf));
 
-            // Tìm visual wheels trong prefab nếu có
             Transform flMesh = car.transform.Find("Wheel_FL");
             Transform frMesh = car.transform.Find("Wheel_FR");
             Transform rlMesh = car.transform.Find("Wheel_RL");
@@ -230,7 +237,7 @@ namespace HueCity.EditorTools
                 bc.center = new Vector3(0f, 0.7f, 0f);
             }
 
-            // Bộ bàn ghế nhựa vỉa hè
+            // Bộ bàn ghế nhựa vỉa hè có gắn sẵn ActivityPoint cho NPC
             string chairsPath = "Assets/_Project/Models/Props_Street_Chairs.fbx";
             GameObject chairsPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(chairsPath);
             if (chairsPrefab != null)
@@ -241,39 +248,77 @@ namespace HueCity.EditorTools
                 BoxCollider bc = chairs.AddComponent<BoxCollider>();
                 bc.size = new Vector3(1.4f, 0.6f, 1.4f);
                 bc.center = new Vector3(0f, 0.3f, 0f);
+
+                // Gắn ActivityPoint lên từng chiếc ghế nhựa để NPC có thể vào ngồi
+                foreach (Transform child in chairs.transform)
+                {
+                    if (child.name.Contains("Chair"))
+                    {
+                        ActivityPoint ap = child.gameObject.AddComponent<ActivityPoint>();
+                    }
+                }
             }
         }
-            Object.DestroyImmediate(cabin.GetComponent<Collider>());
 
-            // Exit Point
-            GameObject exitPt = new GameObject("DriverExitPoint");
-            exitPt.transform.SetParent(car.transform);
-            exitPt.transform.localPosition = new Vector3(-2.2f, 0f, 0f);
+        private static void SetupNPCCrowd(GameObject player)
+        {
+            GameObject poolObj = new GameObject("NPCPoolManager");
+            NPCPoolManager poolMgr = poolObj.AddComponent<NPCPoolManager>();
 
-            // Tạo 4 bánh xe
-            WheelCollider flCol = CreateWheelCollider(car.transform, "Wheel_FL", new Vector3(-0.95f, 0.35f, 1.35f));
-            WheelCollider frCol = CreateWheelCollider(car.transform, "Wheel_FR", new Vector3(0.95f, 0.35f, 1.35f));
-            WheelCollider rlCol = CreateWheelCollider(car.transform, "Wheel_RL", new Vector3(-0.95f, 0.35f, -1.35f));
-            WheelCollider rrCol = CreateWheelCollider(car.transform, "Wheel_RR", new Vector3(0.95f, 0.35f, -1.35f));
+            // Tạo các mẫu NPC với màu trang phục đa dạng (lấy cảm hứng từ npc_01 - npc_05)
+            string charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
+            GameObject charPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath);
 
-            Transform flMesh = CreateWheelMesh(car.transform, "Mesh_FL");
-            Transform frMesh = CreateWheelMesh(car.transform, "Mesh_FR");
-            Transform rlMesh = CreateWheelMesh(car.transform, "Mesh_RL");
-            Transform rrMesh = CreateWheelMesh(car.transform, "Mesh_RR");
+            Color[] shirtColors = new Color[]
+            {
+                new Color(0.85f, 0.2f, 0.2f),   // Đỏ
+                new Color(0.2f, 0.6f, 0.85f),  // Xanh dương
+                new Color(0.9f, 0.85f, 0.2f),  // Vàng
+                new Color(0.3f, 0.75f, 0.3f),  // Xanh lá
+                new Color(0.85f, 0.85f, 0.85f) // Trắng
+            };
 
-            CarController carController = car.AddComponent<CarController>();
-            VehicleSeat seat = car.AddComponent<VehicleSeat>();
+            GameObject[] npcPrefabs = new GameObject[shirtColors.Length];
 
-            SerializedObject carSo = new SerializedObject(carController);
-            SetWheelPair(carSo, "frontWheels", flCol, frCol, flMesh, frMesh);
-            SetWheelPair(carSo, "rearWheels", rlCol, rrCol, rlMesh, rrMesh);
-            carSo.ApplyModifiedProperties();
+            for (int i = 0; i < shirtColors.Length; i++)
+            {
+                GameObject npc = new GameObject($"NPC_Template_{i}");
+                npc.transform.SetParent(poolObj.transform);
 
-            SerializedObject seatSo = new SerializedObject(seat);
-            seatSo.FindProperty("exitPoint").objectReferenceValue = exitPt.transform;
-            seatSo.ApplyModifiedProperties();
+                if (charPrefab != null)
+                {
+                    GameObject visual = (GameObject)PrefabUtility.InstantiatePrefab(charPrefab);
+                    visual.transform.SetParent(npc.transform);
+                    visual.transform.localPosition = Vector3.zero;
+                }
+                else
+                {
+                    GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                    capsule.transform.SetParent(npc.transform);
+                    capsule.transform.localPosition = new Vector3(0f, 1f, 0f);
+                    Object.DestroyImmediate(capsule.GetComponent<Collider>());
+                }
 
-            return car;
+                NavMeshAgent nma = npc.AddComponent<NavMeshAgent>();
+                nma.speed = 1.4f;
+                nma.radius = 0.3f;
+                nma.height = 1.8f;
+                nma.stoppingDistance = 0.2f;
+
+                npc.AddComponent<NPCController>();
+                npc.SetActive(false);
+                npcPrefabs[i] = npc;
+            }
+
+            SerializedObject poolSo = new SerializedObject(poolMgr);
+            SerializedProperty prefabsProp = poolSo.FindProperty("npcPrefabs");
+            prefabsProp.arraySize = npcPrefabs.Length;
+            for (int i = 0; i < npcPrefabs.Length; i++)
+            {
+                prefabsProp.GetArrayElementAtIndex(i).objectReferenceValue = npcPrefabs[i];
+            }
+            poolSo.FindProperty("maxActiveNPCs").intValue = 18;
+            poolSo.ApplyModifiedProperties();
         }
 
         private static WheelCollider CreateWheelCollider(Transform parent, string name, Vector3 localPos)
@@ -301,17 +346,6 @@ namespace HueCity.EditorTools
             col.sidewaysFriction = sideways;
 
             return col;
-        }
-
-        private static Transform CreateWheelMesh(Transform parent, string name)
-        {
-            GameObject meshObj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            meshObj.name = name;
-            meshObj.transform.SetParent(parent);
-            meshObj.transform.localScale = new Vector3(0.76f, 0.15f, 0.76f);
-            meshObj.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            Object.DestroyImmediate(meshObj.GetComponent<Collider>());
-            return meshObj.transform;
         }
 
         private static void SetWheelPair(SerializedObject so, string propertyName, WheelCollider lCol, WheelCollider rCol, Transform lMesh, Transform rMesh)
