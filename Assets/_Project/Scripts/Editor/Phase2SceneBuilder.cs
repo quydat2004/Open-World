@@ -47,16 +47,19 @@ namespace HueCity.EditorTools
                 fallbackGround.transform.position = new Vector3(0f, -0.5f, 0f);
             }
 
-            // 4. Tạo Nhân vật (Player Greybox) tại ngã ba Lê Lợi - Hùng Vương
+            // 4. Tạo Nhân vật (Player với Mesh Rigged hoặc Capsule fallback)
             GameObject player = CreatePlayerObject(new Vector3(0f, 1.2f, 0f));
 
-            // 5. Tạo Xe hơi (Car Greybox) ngay trên đường Hùng Vương
-            GameObject car = CreateCarObject(new Vector3(4f, 1.2f, 6f));
+            // 5. Tạo Xe hơi Taxi Huế (Xanh SM)
+            GameObject car = CreateTaxiObject(new Vector3(4f, 0.5f, 6f));
 
-            // 6. Thiết lập Cinemachine Camera
+            // 6. Đặt Xe máy (Scooter), Xích lô (Cyclo) và Bộ bàn ghế vỉa hè trang trí
+            SpawnDecorativeProps();
+
+            // 7. Thiết lập Cinemachine Camera
             CreateCameraSetup(player, car);
 
-            // 7. Lưu Scene vào Assets/_Project/Scenes/Phase2_MapBlocking.unity
+            // 8. Lưu Scene vào Assets/_Project/Scenes/Phase2_MapBlocking.unity
             string scenePath = "Assets/_Project/Scenes/Phase2_MapBlocking.unity";
             EditorSceneManager.SaveScene(newScene, scenePath);
             AssetDatabase.Refresh();
@@ -94,29 +97,36 @@ namespace HueCity.EditorTools
 
         private static GameObject CreatePlayerObject(Vector3 spawnPos)
         {
-            GameObject player = new GameObject("Player_Greybox");
+            GameObject player = new GameObject("Player_Character");
             player.transform.position = spawnPos;
 
-            // Mesh đại diện (Capsule)
-            GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            capsule.name = "Visual";
-            capsule.transform.SetParent(player.transform);
-            capsule.transform.localPosition = new Vector3(0f, 1f, 0f);
-            Object.DestroyImmediate(capsule.GetComponent<Collider>());
+            // Kiểm tra xem có model nhân vật Rigged không
+            string charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
+            GameObject charPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath);
 
-            // Mũi chỉ hướng mặt
-            GameObject nose = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            nose.name = "Nose_Indicator";
-            nose.transform.SetParent(player.transform);
-            nose.transform.localPosition = new Vector3(0f, 1.5f, 0.45f);
-            nose.transform.localScale = new Vector3(0.25f, 0.25f, 0.4f);
-            Object.DestroyImmediate(nose.GetComponent<Collider>());
+            if (charPrefab != null)
+            {
+                GameObject charInstance = (GameObject)PrefabUtility.InstantiatePrefab(charPrefab);
+                charInstance.name = "Visual_Humanoid";
+                charInstance.transform.SetParent(player.transform);
+                charInstance.transform.localPosition = Vector3.zero;
+                charInstance.transform.localRotation = Quaternion.identity;
+            }
+            else
+            {
+                // Fallback capsule
+                GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                capsule.name = "Visual";
+                capsule.transform.SetParent(player.transform);
+                capsule.transform.localPosition = new Vector3(0f, 1f, 0f);
+                Object.DestroyImmediate(capsule.GetComponent<Collider>());
+            }
 
             // Components
             CharacterController cc = player.AddComponent<CharacterController>();
-            cc.height = 2f;
-            cc.radius = 0.5f;
-            cc.center = new Vector3(0f, 1f, 0f);
+            cc.height = 1.8f;
+            cc.radius = 0.35f;
+            cc.center = new Vector3(0f, 0.9f, 0f);
 
             player.AddComponent<PlayerInputHandler>();
             player.AddComponent<PlayerMovement>();
@@ -125,36 +135,114 @@ namespace HueCity.EditorTools
             return player;
         }
 
-        private static GameObject CreateCarObject(Vector3 spawnPos)
+        private static GameObject CreateTaxiObject(Vector3 spawnPos)
         {
-            GameObject car = new GameObject("Car_Greybox");
-            car.transform.position = spawnPos;
+            string taxiFbxPath = "Assets/_Project/Models/Vehicle_Taxi_Hue.fbx";
+            GameObject taxiPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(taxiFbxPath);
+
+            GameObject car;
+            if (taxiPrefab != null)
+            {
+                car = (GameObject)PrefabUtility.InstantiatePrefab(taxiPrefab);
+                car.name = "Vehicle_Taxi_Hue";
+                car.transform.position = spawnPos;
+            }
+            else
+            {
+                car = new GameObject("Car_Fallback");
+                car.transform.position = spawnPos;
+            }
 
             // Rigidbody
-            Rigidbody rb = car.AddComponent<Rigidbody>();
-            rb.mass = 1400f;
+            Rigidbody rb = car.GetComponent<Rigidbody>();
+            if (rb == null) rb = car.AddComponent<Rigidbody>();
+            rb.mass = 1450f;
             rb.drag = 0.05f;
-            rb.angularDrag = 1.5f;
+            rb.angularDrag = 1.6f;
 
             // Chassis Box Collider
-            BoxCollider col = car.AddComponent<BoxCollider>();
-            col.size = new Vector3(2f, 0.9f, 4.2f);
+            BoxCollider col = car.GetComponent<BoxCollider>();
+            if (col == null) col = car.AddComponent<BoxCollider>();
+            col.size = new Vector3(1.85f, 0.9f, 4.4f);
             col.center = new Vector3(0f, 0.65f, 0f);
 
-            // Visual Body
-            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            body.name = "Car_Body_Visual";
-            body.transform.SetParent(car.transform);
-            body.transform.localPosition = new Vector3(0f, 0.65f, 0f);
-            body.transform.localScale = new Vector3(2f, 0.9f, 4.2f);
-            Object.DestroyImmediate(body.GetComponent<Collider>());
+            // Exit Point
+            GameObject exitPt = new GameObject("DriverExitPoint");
+            exitPt.transform.SetParent(car.transform);
+            exitPt.transform.localPosition = new Vector3(-2.2f, 0f, 0f);
 
-            // Cabin
-            GameObject cabin = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cabin.name = "Cabin_Visual";
-            cabin.transform.SetParent(car.transform);
-            cabin.transform.localPosition = new Vector3(0f, 1.35f, -0.3f);
-            cabin.transform.localScale = new Vector3(1.7f, 0.7f, 2.2f);
+            // Tìm hoặc tạo WheelColliders
+            float trackHalf = 0.85f;
+            float baseHalf = 1.35f;
+            WheelCollider flCol = CreateWheelCollider(car.transform, "WheelCol_FL", new Vector3(-trackHalf, 0.34f, baseHalf));
+            WheelCollider frCol = CreateWheelCollider(car.transform, "WheelCol_FR", new Vector3(trackHalf, 0.34f, baseHalf));
+            WheelCollider rlCol = CreateWheelCollider(car.transform, "WheelCol_RL", new Vector3(-trackHalf, 0.34f, -baseHalf));
+            WheelCollider rrCol = CreateWheelCollider(car.transform, "WheelCol_RR", new Vector3(trackHalf, 0.34f, -baseHalf));
+
+            // Tìm visual wheels trong prefab nếu có
+            Transform flMesh = car.transform.Find("Wheel_FL");
+            Transform frMesh = car.transform.Find("Wheel_FR");
+            Transform rlMesh = car.transform.Find("Wheel_RL");
+            Transform rrMesh = car.transform.Find("Wheel_RR");
+
+            CarController carController = car.AddComponent<CarController>();
+            VehicleSeat seat = car.AddComponent<VehicleSeat>();
+
+            SerializedObject carSo = new SerializedObject(carController);
+            SetWheelPair(carSo, "frontWheels", flCol, frCol, flMesh, frMesh);
+            SetWheelPair(carSo, "rearWheels", rlCol, rrCol, rlMesh, rrMesh);
+            carSo.ApplyModifiedProperties();
+
+            SerializedObject seatSo = new SerializedObject(seat);
+            seatSo.FindProperty("exitPoint").objectReferenceValue = exitPt.transform;
+            seatSo.ApplyModifiedProperties();
+
+            return car;
+        }
+
+        private static void SpawnDecorativeProps()
+        {
+            // Xe máy (Scooter) đậu ở lề đường
+            string scooterPath = "Assets/_Project/Models/Vehicle_Scooter.fbx";
+            GameObject scooterPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(scooterPath);
+            if (scooterPrefab != null)
+            {
+                GameObject scooter = (GameObject)PrefabUtility.InstantiatePrefab(scooterPrefab);
+                scooter.name = "Street_Scooter";
+                scooter.transform.position = new Vector3(-3.2f, 0.25f, 4.0f);
+                scooter.transform.rotation = Quaternion.Euler(0f, 25f, 0f);
+                BoxCollider bc = scooter.AddComponent<BoxCollider>();
+                bc.size = new Vector3(0.6f, 1.1f, 1.8f);
+                bc.center = new Vector3(0f, 0.55f, 0f);
+            }
+
+            // Xích lô Huế đậu ven bờ sông
+            string cycloPath = "Assets/_Project/Models/Vehicle_XichLo.fbx";
+            GameObject cycloPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(cycloPath);
+            if (cycloPrefab != null)
+            {
+                GameObject cyclo = (GameObject)PrefabUtility.InstantiatePrefab(cycloPrefab);
+                cyclo.name = "Street_XichLo_Hue";
+                cyclo.transform.position = new Vector3(-8.5f, 0.25f, 6.5f);
+                cyclo.transform.rotation = Quaternion.Euler(0f, -40f, 0f);
+                BoxCollider bc = cyclo.AddComponent<BoxCollider>();
+                bc.size = new Vector3(1.1f, 1.4f, 2.2f);
+                bc.center = new Vector3(0f, 0.7f, 0f);
+            }
+
+            // Bộ bàn ghế nhựa vỉa hè
+            string chairsPath = "Assets/_Project/Models/Props_Street_Chairs.fbx";
+            GameObject chairsPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(chairsPath);
+            if (chairsPrefab != null)
+            {
+                GameObject chairs = (GameObject)PrefabUtility.InstantiatePrefab(chairsPrefab);
+                chairs.name = "Street_Cafe_PlasticChairs";
+                chairs.transform.position = new Vector3(-4.5f, 0.25f, 0f);
+                BoxCollider bc = chairs.AddComponent<BoxCollider>();
+                bc.size = new Vector3(1.4f, 0.6f, 1.4f);
+                bc.center = new Vector3(0f, 0.3f, 0f);
+            }
+        }
             Object.DestroyImmediate(cabin.GetComponent<Collider>());
 
             // Exit Point
