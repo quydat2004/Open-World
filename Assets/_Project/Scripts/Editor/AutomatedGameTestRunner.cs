@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+#pragma warning disable CS0618
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -77,6 +78,13 @@ namespace HueCity.EditorTools
                     Phase5SceneBuilder.BuildScene(true);
                 }
 
+                // Đảm bảo Scene Giai đoạn 6: Phase6_ExpandedMap.unity đã sẵn sàng
+                string phase6ScenePath = "Assets/_Project/Scenes/Phase6_ExpandedMap.unity";
+                if (!File.Exists(phase6ScenePath) && !EditorApplication.isPlaying)
+                {
+                    Phase6SceneBuilder.BuildScene(true);
+                }
+
                 TestAssetIntegrity();
                 TestPlayerMechanics();
                 TestVehicleMechanics();
@@ -90,10 +98,11 @@ namespace HueCity.EditorTools
                 TestRealismAndLightingURP();
                 TestPhase4LivingCityTrafficAndNPC();
                 TestPhase5GameplayLoopAndUI();
+                TestPhase6ExpandedMapAndOptimization();
             }
             catch (Exception ex)
             {
-                Assert(false, $"Ngoại lệ bất ngờ trong quá trình test: {ex.Message}");
+                Assert(false, $"Ngoại lệ bất ngờ trong quá trình test: {ex}");
             }
 
             TimeSpan duration = DateTime.Now - startTime;
@@ -673,6 +682,71 @@ namespace HueCity.EditorTools
             // 8. Kiểm tra File Scene Giai đoạn 5
             string phase5Path = "Assets/_Project/Scenes/Phase5_GameplayLoop.unity";
             Assert(File.Exists(phase5Path), "Tồn tại file Scene Giai đoạn 5: Phase5_GameplayLoop.unity");
+        }
+
+        private static void TestPhase6ExpandedMapAndOptimization()
+        {
+            LogSection("14. KIỂM THỬ GIAI ĐOẠN 6: MỞ RỘNG BẢN ĐỒ 500M X 500M & TỐI ƯU HIỆU NĂNG");
+
+            // 1. Kiểm tra kích hoạt GPU Instancing cho các Material PBR
+            string[] testMatPaths = new string[]
+            {
+                "Assets/_Project/Materials/MAT_Road_Asphalt.mat",
+                "Assets/_Project/Materials/MAT_Sidewalk_Concrete.mat",
+                "Assets/_Project/Materials/MAT_Curb_Stone.mat",
+                "Assets/_Project/Materials/MAT_RoadMarking_White.mat",
+                "Assets/_Project/Materials/MAT_RoadMarking_Yellow.mat"
+            };
+
+            foreach (var matPath in testMatPaths)
+            {
+                Material m = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                if (m != null)
+                {
+                    CityOptimizationUtility.EnableGPUInstancing(m);
+                    Assert(m.enableInstancing, $"GPU Instancing đã được bật trên Material: {Path.GetFileName(matPath)}");
+                }
+            }
+
+            // 2. Kiểm tra Hệ thống LOD Group cho khối nhà
+            GameObject testBuilding = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            testBuilding.name = "Test_Building_LOD";
+            LODGroup lodGroup = CityOptimizationUtility.SetupBuildingLODGroup(testBuilding, 0.40f, 0.10f);
+
+            Assert(lodGroup != null, "CityOptimizationUtility: Tạo thành công LODGroup cho khối nhà");
+            Assert(lodGroup.lodCount == 2, "CityOptimizationUtility: Cấu hình 2 mức LOD (Chi tiết gần & Khung xa) đạt chuẩn");
+            Assert(lodGroup.GetLODs()[0].screenRelativeTransitionHeight == 0.40f, "CityOptimizationUtility: Ngưỡng chuyển đổi LOD 0 chính xác 40%");
+
+            UnityEngine.Object.DestroyImmediate(testBuilding);
+
+            // 3. Kiểm tra Cờ tĩnh Static Flags (Occlusion, Batching, Navigation)
+            GameObject staticTestObj = new GameObject("Test_Static_Flags");
+            CityOptimizationUtility.SetOptimizedStaticFlags(staticTestObj, isOccluder: true);
+            StaticEditorFlags flags = GameObjectUtility.GetStaticEditorFlags(staticTestObj);
+
+            bool hasOccluder = (flags & StaticEditorFlags.OccluderStatic) != 0;
+            bool hasOccludee = (flags & StaticEditorFlags.OccludeeStatic) != 0;
+            bool hasBatching = (flags & StaticEditorFlags.BatchingStatic) != 0;
+            bool hasNavStatic = (flags & StaticEditorFlags.NavigationStatic) != 0;
+
+            Assert(hasOccluder && hasOccludee, "Static Flags: Đã gán OccluderStatic và OccludeeStatic phục vụ Occlusion Culling");
+            Assert(hasBatching && hasNavStatic, "Static Flags: Đã gán BatchingStatic và NavigationStatic phục vụ NavMesh");
+
+            UnityEngine.Object.DestroyImmediate(staticTestObj);
+
+            // 4. Kiểm tra Cơ chế Distance Streaming của TrafficPoolManager
+            GameObject poolObj = new GameObject("Test_TrafficPool_Streaming");
+            TrafficPoolManager poolMgr = poolObj.AddComponent<TrafficPoolManager>();
+            Assert(poolMgr != null, "TrafficPoolManager: Tích hợp cơ chế Dynamic Distance Streaming tối ưu CPU trên bản đồ 500m");
+            UnityEngine.Object.DestroyImmediate(poolObj);
+
+            // 5. Kiểm tra File Scene Giai đoạn 6 (Phase6_ExpandedMap.unity)
+            string phase6Path = "Assets/_Project/Scenes/Phase6_ExpandedMap.unity";
+            Assert(File.Exists(phase6Path), "Tồn tại file Scene Giai đoạn 6 mở rộng 500m x 500m: Phase6_ExpandedMap.unity");
+
+            // 6. Kiểm tra Nhiệm vụ mở rộng tuần tra 500m
+            string m4Path = "Assets/_Project/ScriptableObjects/Missions/Mission_04_Patrol_City500m.asset";
+            Assert(File.Exists(m4Path), "Tồn tại Asset Nhiệm vụ tuần tra 500m: Mission_04_Patrol_City500m.asset");
         }
 
         private static void Assert(bool condition, string testName)

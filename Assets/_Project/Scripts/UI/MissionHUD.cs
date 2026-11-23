@@ -18,8 +18,10 @@ namespace HueCity.UI
         [SerializeField] private Text timerText;
         [SerializeField] private Text rewardText;
 
-        public bool IsVisible => panelRoot != null && panelRoot.activeSelf;
-        public string DisplayedTitle => titleText != null ? titleText.text : "";
+        private string manualTitle = "";
+
+        public bool IsVisible => panelRoot != null ? panelRoot.activeSelf : gameObject.activeSelf;
+        public string DisplayedTitle => titleText != null ? titleText.text : manualTitle;
 
         private void Awake()
         {
@@ -97,11 +99,13 @@ namespace HueCity.UI
 
         public void SetManualDisplay(string title, string obj, string timer, string reward)
         {
+            manualTitle = title;
+            if (panelRoot == null) panelRoot = gameObject;
             if (titleText != null) titleText.text = title;
             if (objectiveText != null) objectiveText.text = obj;
             if (timerText != null) timerText.text = timer;
             if (rewardText != null) rewardText.text = reward;
-            if (panelRoot != null) panelRoot.SetActive(true);
+            panelRoot.SetActive(true);
         }
     }
 }

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba025055d0c886a41a1d2261e7d5bba0, type: 3}
+  m_Name: Mission_03_Speed_TruongTien
+  m_EditorClassIdentifier: 
+  missionId: MIS_03
+  title: "Th\u1EED Th\xE1ch T\u1ED1c \u0110\u1ED9 C\u1ED1 \u0110\xF4"
+  description: "L\xE1i xe \u0111\u1EA1t t\u1ED1c \u0111\u1ED9 cao v\u01B0\u1EE3t
+    qua 2 giao l\u1ED9 tr\u01B0\u1EDBc khi h\u1EBFt th\u1EDDi gian."
+  missionType: 2
+  rewardMoney: 100000
+  timeLimit: 45
+  startPosition: {x: -25, y: 0.35, z: -3.5}
+  targetPosition: {x: 25, y: 0.35, z: -3.5}
+  targetRadius: 4.5

@@ -16,12 +16,15 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 namespace HueCity.EditorTools
 {
+    using Camera = UnityEngine.Camera;
+
     /// <summary>
     /// Trình dựng Scene Giai đoạn 5: Vòng lặp Gameplay & Giao diện (Phase 5 Gameplay Loop Scene Builder).
     /// Tích hợp đầy đủ:
@@ -256,11 +259,18 @@ namespace HueCity.EditorTools
             miniCam.targetTexture = rt;
             minimapCtrl.SetMinimapCamera(miniCam);
 
-            // Gán Texture vào RawImage nền Minimap nếu có
+            // Gán Texture vào RawImage nền Minimap (tạo GameObject con riêng để không xung đột với Image)
             RawImage rawImg = minimapCtrl.GetComponentInChildren<RawImage>();
             if (rawImg == null)
             {
-                rawImg = minimapCtrl.gameObject.AddComponent<RawImage>();
+                GameObject rtChild = new GameObject("Minimap_RT_Display");
+                rtChild.transform.SetParent(minimapCtrl.transform, false);
+                rtChild.transform.SetAsFirstSibling();
+                RectTransform rtRect = rtChild.AddComponent<RectTransform>();
+                rtRect.anchorMin = Vector2.zero;
+                rtRect.anchorMax = Vector2.one;
+                rtRect.sizeDelta = Vector2.zero;
+                rawImg = rtChild.AddComponent<RawImage>();
                 rawImg.raycastTarget = false;
             }
             rawImg.texture = rt;
@@ -719,8 +729,10 @@ namespace HueCity.EditorTools
             driveComp.m_TrackedObjectOffset = new Vector3(0f, 1.0f, 0f);
 
             SerializedObject camSo = new SerializedObject(camManager);
-            camSo.FindProperty("walkCamera").objectReferenceValue = walkCam;
-            camSo.FindProperty("driveCamera").objectReferenceValue = driveCam;
+            SerializedProperty pCam = camSo.FindProperty("playerCamera") ?? camSo.FindProperty("walkCamera");
+            if (pCam != null) pCam.objectReferenceValue = walkCam;
+            SerializedProperty vCam = camSo.FindProperty("vehicleCamera") ?? camSo.FindProperty("driveCamera");
+            if (vCam != null) vCam.objectReferenceValue = driveCam;
             camSo.ApplyModifiedProperties();
 
             // Main Camera URP
@@ -1039,7 +1051,8 @@ namespace HueCity.EditorTools
                     prefabsProp.GetArrayElementAtIndex(i).objectReferenceValue = npcPrefabs[i];
                 }
             }
-            poolSo.FindProperty("poolSize").intValue = 18;
+            var maxProp = poolSo.FindProperty("maxActiveNPCs") ?? poolSo.FindProperty("poolSize");
+            if (maxProp != null) maxProp.intValue = 18;
             poolSo.ApplyModifiedProperties();
         }
     }

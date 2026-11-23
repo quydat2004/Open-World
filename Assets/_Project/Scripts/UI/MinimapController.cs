@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 namespace HueCity.UI
 {
+    using Camera = UnityEngine.Camera;
+
     /// <summary>
     /// Điều khiển Bản đồ con (Minimap Controller) góc dưới bên trái màn hình.
     /// Theo dõi vị trí và hướng nhìn của người chơi, đồng thời hiển thị la bàn GPS chỉ hướng tới mục tiêu nhiệm vụ.
@@ -12,7 +14,7 @@ namespace HueCity.UI
     {
         [Header("Target Tracking")]
         [SerializeField] private Transform playerTransform;
-        [SerializeField] private Camera minimapCamera;
+        [SerializeField] private UnityEngine.Camera minimapCamera;
         [SerializeField] private float cameraHeight = 65.0f;
 
         [Header("UI Icons & Markers")]
@@ -23,14 +25,14 @@ namespace HueCity.UI
         [SerializeField] private float worldScale = 2.0f; // Tỉ lệ mét thế giới ra pixel minimap
 
         public Transform PlayerTransform => playerTransform;
-        public Camera MinimapCamera => minimapCamera;
+        public UnityEngine.Camera MinimapCamera => minimapCamera;
 
         public void SetPlayerTarget(Transform player)
         {
             playerTransform = player;
         }
 
-        public void SetMinimapCamera(Camera cam)
+        public void SetMinimapCamera(UnityEngine.Camera cam)
         {
             minimapCamera = cam;
         }

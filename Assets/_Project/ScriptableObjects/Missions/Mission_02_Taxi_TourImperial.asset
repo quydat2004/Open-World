@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba025055d0c886a41a1d2261e7d5bba0, type: 3}
+  m_Name: Mission_02_Taxi_TourImperial
+  m_EditorClassIdentifier: 
+  missionId: MIS_02
+  title: "Ch\u1EDF Du Kh\xE1ch Tham Quan"
+  description: "L\xE1i xe taxi \u0111\xF3n kh\xE1ch t\u1EA1i tr\u1EA1m v\xE0 ch\u1EDF
+    qua ng\xE3 t\u01B0 h\u01B0\u1EDBng v\u1EC1 c\u1ED5ng Ng\u1ECD M\xF4n."
+  missionType: 1
+  rewardMoney: 75000
+  timeLimit: 120
+  startPosition: {x: 3.5, y: 0.35, z: 16}
+  targetPosition: {x: -3.5, y: 0.35, z: -25}
+  targetRadius: 4

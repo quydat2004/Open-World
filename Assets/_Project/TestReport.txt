@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 13:18:04
+  Thời gian: 2026-11-23 14:32:23
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -40,7 +40,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 20.3s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 15.1s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -79,7 +79,59 @@
   [PASS] Tồn tại AnimationClip Run có đường cong chạy nước rút
   [PASS] Tồn tại Material Sơn bóng xe Taxi Vàng: MAT_Vehicle_Paint.mat
   [PASS] Tồn tại Material Đèn pha phát sáng: MAT_Vehicle_Headlights.mat
+--- 12. KIỂM THỬ GIAI ĐOẠN 4: THỔI HỒN THÀNH PHỐ (TRAFFIC & LIVING CITY) ---
+  [PASS] TrafficWaypoint: Cờ điểm dừng stop-line được thiết lập chính xác
+  [PASS] TrafficWaypoint: Hướng lưu thông trục Bắc-Nam (NorthSouth) gán chuẩn
+  [PASS] TrafficWaypoint: Giới hạn tốc độ được gán đúng thông số
+  [PASS] TrafficWaypoint: Liên kết mạng lưới điểm tiếp theo hoạt động chuẩn xác
+  [PASS] TrafficLightController Phase 0: Trục Bắc-Nam đèn Xanh, Trục Đông-Tây đèn Đỏ
+  [PASS] TrafficLightController: Phương tiện hướng Bắc-Nam được phép qua khi đèn Xanh
+  [PASS] TrafficLightController: Phương tiện hướng Đông-Tây bị dừng lại khi đèn Đỏ
+  [PASS] TrafficLightController Phase 1: Trục Bắc-Nam chuyển Vàng chuẩn bị dừng
+  [PASS] TrafficLightController: Xe hướng Bắc-Nam không được vượt khi đèn Vàng
+  [PASS] TrafficLightController Phase 2: Trục Bắc-Nam đèn Đỏ, Trục Đông-Tây đèn Xanh
+  [PASS] TrafficLightController: Xe hướng Bắc-Nam dừng tuyệt đối khi đèn Đỏ
+  [PASS] TrafficLightController: Xe hướng Đông-Tây thông suốt khi đèn Xanh
+  [PASS] TrafficVehicleAI: Khởi tạo bám Waypoint ban đầu chính xác
+  [PASS] TrafficVehicleAI: Khởi tạo tốc độ ban đầu chuẩn xác
+  [PASS] TrafficVehicleAI: Trạng thái kẹt xe ban đầu là False
+  [PASS] TrafficPoolManager: Khởi tạo Object Pool thành công với 4 xe giao thông
+  [PASS] TrafficPoolManager: Số lượng xe hoạt động không vượt quá dung lượng Pool
+  [PASS] NPCController: Tích hợp đầy đủ NavMeshAgent và bộ FSM 5 trạng thái
+  [PASS] Tồn tại file Scene Giai đoạn 4: Phase4_LivingCity.unity
+  [PASS] Mô hình xe ô tô Sedan chi tiết Car_Sedan_01.fbx có mặt
+  [PASS] Mô hình nhân vật người chân thực Character_Player.fbx có mặt
+--- 13. KIỂM THỬ GIAI ĐOẠN 5: VÒNG LẶP GAMEPLAY & GIAO DIỆN (GAMEPLAY LOOP & UI) ---
+  [PASS] PlayerData JSON: Lưu và đọc số dư tiền mặt 75,000đ chính xác 100%
+  [PASS] PlayerData JSON: Lưu và phục hồi tọa độ người chơi chính xác
+  [PASS] PlayerData JSON: Lưu danh sách nhiệm vụ đã hoàn thành chính xác
+  [PASS] MissionData: Khởi tạo thông tin nhiệm vụ ScriptableObject chuẩn xác
+  [PASS] MissionManager: Đăng ký danh mục nhiệm vụ thành công
+  [PASS] MissionManager: Bắt đầu nhiệm vụ thành công và kích hoạt bộ đếm thời gian
+  [PASS] MissionManager: Hoàn thành nhiệm vụ và giải phóng trạng thái thành công
+  [PASS] Tồn tại Asset Nhiệm vụ 1: Giao Bánh Bột Lọc (Mission_01_Delivery_HueCakes.asset)
+  [PASS] Tồn tại Asset Nhiệm vụ 2: Taxi Du Lịch Cố Đô (Mission_02_Taxi_TourImperial.asset)
+  [PASS] Tồn tại Asset Nhiệm vụ 3: Đua Xe Bấm Giờ Trường Tiền (Mission_03_Speed_TruongTien.asset)
+  [PASS] SpeedometerUI: Tính toán và hiển thị tốc độ km/h kỹ thuật số chính xác
+  [PASS] MissionHUD: Hiển thị đầy đủ tiêu đề, mô tả và đồng hồ đếm ngược nhiệm vụ
+  [PASS] PlayerHUD: Hiển thị số dư tiền mặt 85,000đ chính xác
+  [PASS] MinimapController: Khởi tạo thành công bộ điều khiển bản đồ con
+  [PASS] Tồn tại file Scene Giai đoạn 5: Phase5_GameplayLoop.unity
+--- 14. KIỂM THỬ GIAI ĐOẠN 6: MỞ RỘNG BẢN ĐỒ 500M X 500M & TỐI ƯU HIỆU NĂNG ---
+  [PASS] GPU Instancing đã được bật trên Material: MAT_Road_Asphalt.mat
+  [PASS] GPU Instancing đã được bật trên Material: MAT_Sidewalk_Concrete.mat
+  [PASS] GPU Instancing đã được bật trên Material: MAT_Curb_Stone.mat
+  [PASS] GPU Instancing đã được bật trên Material: MAT_RoadMarking_White.mat
+  [PASS] GPU Instancing đã được bật trên Material: MAT_RoadMarking_Yellow.mat
+  [PASS] CityOptimizationUtility: Tạo thành công LODGroup cho khối nhà
+  [PASS] CityOptimizationUtility: Cấu hình 2 mức LOD (Chi tiết gần & Khung xa) đạt chuẩn
+  [PASS] CityOptimizationUtility: Ngưỡng chuyển đổi LOD 0 chính xác 40%
+  [PASS] Static Flags: Đã gán OccluderStatic và OccludeeStatic phục vụ Occlusion Culling
+  [PASS] Static Flags: Đã gán BatchingStatic và NavigationStatic phục vụ NavMesh
+  [PASS] TrafficPoolManager: Tích hợp cơ chế Dynamic Distance Streaming tối ưu CPU trên bản đồ 500m
+  [PASS] Tồn tại file Scene Giai đoạn 6 mở rộng 500m x 500m: Phase6_ExpandedMap.unity
+  [PASS] Tồn tại Asset Nhiệm vụ tuần tra 500m: Mission_04_Patrol_City500m.asset
 
 ================================================================================
-  TỔNG KẾT: 65 PASSED, 0 FAILED (Thời gian chạy: 486.3ms)
+  TỔNG KẾT: 114 PASSED, 0 FAILED (Thời gian chạy: 6285.5ms)
 ================================================================================

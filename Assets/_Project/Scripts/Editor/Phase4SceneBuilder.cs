@@ -608,8 +608,10 @@ namespace HueCity.EditorTools
             driveComp.m_TrackedObjectOffset = new Vector3(0f, 1.0f, 0f);
 
             SerializedObject camSo = new SerializedObject(camManager);
-            camSo.FindProperty("walkCamera").objectReferenceValue = walkCam;
-            camSo.FindProperty("driveCamera").objectReferenceValue = driveCam;
+            SerializedProperty pCam = camSo.FindProperty("playerCamera") ?? camSo.FindProperty("walkCamera");
+            if (pCam != null) pCam.objectReferenceValue = walkCam;
+            SerializedProperty vCam = camSo.FindProperty("vehicleCamera") ?? camSo.FindProperty("driveCamera");
+            if (vCam != null) vCam.objectReferenceValue = driveCam;
             camSo.ApplyModifiedProperties();
 
             // Main Camera URP
@@ -943,7 +945,8 @@ namespace HueCity.EditorTools
                     prefabsProp.GetArrayElementAtIndex(i).objectReferenceValue = npcPrefabs[i];
                 }
             }
-            poolSo.FindProperty("poolSize").intValue = 18;
+            var maxProp = poolSo.FindProperty("maxActiveNPCs") ?? poolSo.FindProperty("poolSize");
+            if (maxProp != null) maxProp.intValue = 18;
             poolSo.ApplyModifiedProperties();
         }
     }

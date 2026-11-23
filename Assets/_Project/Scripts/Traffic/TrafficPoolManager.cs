@@ -50,6 +50,10 @@ namespace HueCity.Traffic
             InitializePool();
         }
 
+        [Header("Distance Streaming (500m City Optimization)")]
+        [SerializeField] private float maxDistanceToPlayer = 110.0f;
+        private Transform playerTransform;
+
         private void Update()
         {
             spawnTimer -= Time.deltaTime;
@@ -57,6 +61,32 @@ namespace HueCity.Traffic
             {
                 spawnTimer = spawnInterval;
                 TrySpawnNextVehicle();
+            }
+
+            CheckDistanceStreaming();
+        }
+
+        private void CheckDistanceStreaming()
+        {
+            if (playerTransform == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null) playerTransform = player.transform;
+                return;
+            }
+
+            Vector3 playerPos = playerTransform.position;
+            float maxDistSqr = maxDistanceToPlayer * maxDistanceToPlayer;
+
+            foreach (var v in vehiclePool)
+            {
+                if (v != null && v.gameObject.activeSelf)
+                {
+                    if ((v.transform.position - playerPos).sqrMagnitude > maxDistSqr)
+                    {
+                        v.gameObject.SetActive(false);
+                    }
+                }
             }
         }
 

@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 namespace HueCity.UI
 {
+    using Camera = UnityEngine.Camera;
+
     /// <summary>
     /// Trình điều phối toàn bộ giao diện trong game (Game HUD Manager).
     /// Quản lý đồng bộ: Minimap, Speedometer, Mission HUD, và Player HUD.
@@ -43,7 +45,7 @@ namespace HueCity.UI
         /// Tạo dựng toàn bộ cấu trúc uGUI Canvas hoàn chỉnh bằng mã C#.
         /// Đảm bảo hoạt động độc lập và hoàn hảo không phụ thuộc vào Prefab có sẵn.
         /// </summary>
-        public static GameObject CreateFullHUDCanvas(Transform playerTarget, Camera mainCam, out GameHUDManager manager)
+        public static GameObject CreateFullHUDCanvas(Transform playerTarget, UnityEngine.Camera mainCam, out GameHUDManager manager)
         {
             GameObject canvasObj = new GameObject("GameHUD_Canvas");
             Canvas canvas = canvasObj.AddComponent<Canvas>();
@@ -58,7 +60,7 @@ namespace HueCity.UI
             canvasObj.AddComponent<GraphicRaycaster>();
             manager = canvasObj.AddComponent<GameHUDManager>();
 
-            Font defaultFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            Font defaultFont = GetDefaultFont();
 
             // 1. Tạo Player HUD (Góc trên bên phải: Tiền & Banner giữa màn hình)
             GameObject playerHudObj = new GameObject("PlayerHUD_Panel");
@@ -205,9 +207,19 @@ namespace HueCity.UI
             txt.fontSize = fontSize;
             txt.alignment = alignment;
             txt.color = color;
-            txt.font = font ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = font ?? GetDefaultFont();
 
             return obj;
+        }
+
+        private static Font GetDefaultFont()
+        {
+            Font f = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (f == null)
+            {
+                try { f = Resources.GetBuiltinResource<Font>("Arial.ttf"); } catch { }
+            }
+            return f;
         }
 
         private static void SetSerializedField(Component target, string fieldName, object value)
