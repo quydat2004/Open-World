@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 09:20:27
+  Thời gian: 2026-11-23 10:02:44
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -37,7 +37,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 22.2s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 18.8s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -50,7 +50,27 @@
 --- 9. Kiểm tra Tích hợp MCP (Unity MCP Bridge) ---
   [PASS] Packages/manifest.json tồn tại
   [PASS] Gói com.coplaydev.unity-mcp đã được khai báo chính thức trong manifest
+--- 10. Kiểm tra Chu kỳ Ngày / Đêm (Day/Night Cycle) ---
+  [PASS] Khởi tạo thành công component DayNightCycle
+  [PASS] Cấu hình 12:00 trưa thành công (IsNight == false)
+  [PASS] Cấu hình 21:00 đêm thành công (IsNight == true)
+--- 11. Kiểm tra Thiết lập Đồ họa & Ánh sáng URP (Realism Overhaul) ---
+  [PASS] Tồn tại URP Pipeline Asset: URP_HighFidelity.asset
+  [PASS] URP Asset đã bật HDR cho ACES Tonemapping
+  [PASS] URP Asset có khoảng cách đổ bóng sắc nét (>= 70m)
+  [PASS] Tồn tại VolumeProfile: Hue_PostProcessing_Profile.asset
+  [PASS] Post-Processing bật ACES Tonemapping điện ảnh
+  [PASS] Post-Processing bật Bloom tán xạ ánh sáng
+  [PASS] Post-Processing bật Color Adjustments (tăng Contrast & Saturation)
+  [PASS] Tồn tại Material Procedural Skybox: MAT_Skybox_Procedural.mat
+  [PASS] Tồn tại Material Mặt đường nhựa PBR: MAT_Road_Asphalt.mat
+  [PASS] Tồn tại Material Vỉa hè bê tông PBR: MAT_Sidewalk_Concrete.mat
+  [PASS] Tồn tại Material Gờ bó vỉa đá Granite: MAT_Curb_Stone.mat
+  [PASS] Tồn tại Material Vạch kẻ đường Trắng: MAT_RoadMarking_White.mat
+  [PASS] Tồn tại Material Vạch phân làn kép Vàng: MAT_RoadMarking_Yellow.mat
+  [PASS] Bộ Texture PBR Nhựa đường Poly Haven thật (Albedo & Normal) tồn tại
+  [PASS] Bộ Texture PBR Vỉa hè Poly Haven thật (Albedo & Normal) tồn tại
 
 ================================================================================
-  TỔNG KẾT: 38 PASSED, 0 FAILED (Thời gian chạy: 24.8ms)
+  TỔNG KẾT: 56 PASSED, 0 FAILED (Thời gian chạy: 36.5ms)
 ================================================================================

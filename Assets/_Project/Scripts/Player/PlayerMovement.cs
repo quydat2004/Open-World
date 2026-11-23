@@ -22,16 +22,19 @@ namespace HueCity.Player
         private CharacterController characterController;
         private PlayerInputHandler inputHandler;
         private Transform cameraTransform;
+        private Animator animator;
 
         private Vector3 verticalVelocity;
         private float currentRotationVelocity;
 
         public bool IsGrounded => characterController.isGrounded;
+        public float CurrentHorizontalSpeed { get; private set; }
 
         private void Awake()
         {
             characterController = GetComponent<CharacterController>();
             inputHandler = GetComponent<PlayerInputHandler>();
+            animator = GetComponentInChildren<Animator>();
         }
 
         private void Start()
@@ -47,6 +50,19 @@ namespace HueCity.Player
             HandleGroundAndGravity();
             HandleMovement();
             HandleJump();
+            UpdateAnimator();
+        }
+
+        private void UpdateAnimator()
+        {
+            Vector3 horizontalVelocity = new Vector3(characterController.velocity.x, 0f, characterController.velocity.z);
+            CurrentHorizontalSpeed = horizontalVelocity.magnitude;
+
+            if (animator != null)
+            {
+                animator.SetFloat("Speed", CurrentHorizontalSpeed, 0.1f, Time.deltaTime);
+                animator.SetBool("IsGrounded", characterController.isGrounded);
+            }
         }
 
         private void HandleGroundAndGravity()
@@ -90,6 +106,10 @@ namespace HueCity.Player
             if (inputHandler.JumpTriggered && characterController.isGrounded)
             {
                 verticalVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                if (animator != null)
+                {
+                    animator.SetTrigger("Jump");
+                }
             }
         }
     }

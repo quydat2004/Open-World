@@ -34,9 +34,20 @@ namespace HueCity.NPC
             agent = GetComponent<NavMeshAgent>();
         }
 
+        public void RegisterStimulusListener()
+        {
+            WorldStimulusManager.OnStimulusEmitted -= HandleStimulus;
+            WorldStimulusManager.OnStimulusEmitted += HandleStimulus;
+        }
+
+        public void UnregisterStimulusListener()
+        {
+            WorldStimulusManager.OnStimulusEmitted -= HandleStimulus;
+        }
+
         private void OnEnable()
         {
-            WorldStimulusManager.OnStimulusEmitted += HandleStimulus;
+            RegisterStimulusListener();
             // Khởi tạo tính cách ngẫu nhiên khi spawn từ Pool
             courage = Random.value;
             aggression = Random.value;
@@ -45,7 +56,7 @@ namespace HueCity.NPC
 
         private void OnDisable()
         {
-            WorldStimulusManager.OnStimulusEmitted -= HandleStimulus;
+            UnregisterStimulusListener();
             if (currentActivityPoint != null)
             {
                 currentActivityPoint.Release();

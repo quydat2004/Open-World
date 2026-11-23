@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Cinemachine;
 using HueCity.Camera;
@@ -12,6 +13,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace HueCity.EditorTools
 {
@@ -51,6 +54,9 @@ namespace HueCity.EditorTools
 
             try
             {
+                // Đảm bảo cấu hình URP, Post-Processing và PBR Materials đã sẵn sàng trước khi test
+                RealismOverhaulSetup.EnsureFullSetup();
+
                 TestAssetIntegrity();
                 TestPlayerMechanics();
                 TestVehicleMechanics();
@@ -61,6 +67,7 @@ namespace HueCity.EditorTools
                 TestDataAndPersistence();
                 TestMCPPackageInstallation();
                 TestDayNightCycle();
+                TestRealismAndLightingURP();
             }
             catch (Exception ex)
             {
@@ -243,6 +250,9 @@ namespace HueCity.EditorTools
                 NPCController npc = npcObj.AddComponent<NPCController>();
                 npcObj.transform.position = Vector3.zero;
 
+                // Đăng ký nhận sự kiện WorldStimulusManager trong môi trường Test
+                npc.RegisterStimulusListener();
+
                 Assert(npc.CurrentState == NPCState.Wander, "Trạng thái khởi đầu mặc định của NPC là Wander");
 
                 // Phát tiếng còi xe trong bán kính 15m (NPC ở tọa độ 0, nguồn ở tọa độ (3, 0, 0))
@@ -256,6 +266,11 @@ namespace HueCity.EditorTools
             }
             finally
             {
+                if (npcObj != null)
+                {
+                    var npc = npcObj.GetComponent<NPCController>();
+                    if (npc != null) npc.UnregisterStimulusListener();
+                }
                 UnityEngine.Object.DestroyImmediate(npcObj);
                 UnityEngine.Object.DestroyImmediate(managerObj);
             }
@@ -374,6 +389,83 @@ namespace HueCity.EditorTools
             {
                 UnityEngine.Object.DestroyImmediate(lightObj);
             }
+        }
+
+        private static void TestRealismAndLightingURP()
+        {
+            LogSection("11. Kiểm tra Thiết lập Đồ họa & Ánh sáng URP (Realism Overhaul)");
+
+            // 1. Kiểm tra URP Pipeline Asset và thiết lập Graphics
+            UniversalRenderPipelineAsset urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/_Project/Settings/URP_HighFidelity.asset");
+            Assert(urpAsset != null, "Tồn tại URP Pipeline Asset: URP_HighFidelity.asset");
+            if (urpAsset != null)
+            {
+                Assert(urpAsset.supportsHDR, "URP Asset đã bật HDR cho ACES Tonemapping");
+                Assert(urpAsset.shadowDistance >= 70f, "URP Asset có khoảng cách đổ bóng sắc nét (>= 70m)");
+            }
+
+            // 2. Kiểm tra VolumeProfile Post-Processing (ACES, Bloom, Color Adjustments)
+            VolumeProfile postProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/_Project/Settings/Hue_PostProcessing_Profile.asset");
+            Assert(postProfile != null, "Tồn tại VolumeProfile: Hue_PostProcessing_Profile.asset");
+            if (postProfile != null)
+            {
+                Tonemapping tonemapping;
+                bool hasTonemapping = postProfile.TryGet(out tonemapping);
+                Assert(hasTonemapping && tonemapping.mode.value == TonemappingMode.ACES, 
+                    "Post-Processing bật ACES Tonemapping điện ảnh");
+
+                Bloom bloom;
+                bool hasBloom = postProfile.TryGet(out bloom);
+                Assert(hasBloom && bloom.intensity.value > 0.1f, 
+                    "Post-Processing bật Bloom tán xạ ánh sáng");
+
+                ColorAdjustments colorAdj;
+                bool hasColor = postProfile.TryGet(out colorAdj);
+                Assert(hasColor && colorAdj.contrast.value > 0f && colorAdj.saturation.value > 0f, 
+                    "Post-Processing bật Color Adjustments (tăng Contrast & Saturation)");
+            }
+
+            // 3. Kiểm tra Procedural Skybox Material
+            Material skyboxMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Skybox_Procedural.mat");
+            Assert(skyboxMat != null, "Tồn tại Material Procedural Skybox: MAT_Skybox_Procedural.mat");
+
+            // 4. Kiểm tra PBR Materials cho Đường nhựa & Vỉa hè
+            Material roadMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Road_Asphalt.mat");
+            Assert(roadMat != null, "Tồn tại Material Mặt đường nhựa PBR: MAT_Road_Asphalt.mat");
+
+            Material sidewalkMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Sidewalk_Concrete.mat");
+            Assert(sidewalkMat != null, "Tồn tại Material Vỉa hè bê tông PBR: MAT_Sidewalk_Concrete.mat");
+
+            Material curbMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Curb_Stone.mat");
+            Assert(curbMat != null, "Tồn tại Material Gờ bó vỉa đá Granite: MAT_Curb_Stone.mat");
+
+            Material whiteMarkingMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_RoadMarking_White.mat");
+            Assert(whiteMarkingMat != null, "Tồn tại Material Vạch kẻ đường Trắng: MAT_RoadMarking_White.mat");
+
+            Material yellowMarkingMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_RoadMarking_Yellow.mat");
+            Assert(yellowMarkingMat != null, "Tồn tại Material Vạch phân làn kép Vàng: MAT_RoadMarking_Yellow.mat");
+
+            // 5. Kiểm tra file Texture PBR thật trên ổ đĩa
+            string roadDiffPath = "Assets/_Project/Textures/PBR/Road_Asphalt/asphalt_02_diff_1k.jpg";
+            string roadNorPath = "Assets/_Project/Textures/PBR/Road_Asphalt/asphalt_02_nor_1k.jpg";
+            string sideDiffPath = "Assets/_Project/Textures/PBR/Sidewalk_Concrete/concrete_pavement_diff_1k.jpg";
+            string sideNorPath = "Assets/_Project/Textures/PBR/Sidewalk_Concrete/concrete_pavement_nor_1k.jpg";
+
+            Assert(File.Exists(roadDiffPath) && File.Exists(roadNorPath), 
+                "Bộ Texture PBR Nhựa đường Poly Haven thật (Albedo & Normal) tồn tại");
+            Assert(File.Exists(sideDiffPath) && File.Exists(sideNorPath), 
+                "Bộ Texture PBR Vỉa hè Poly Haven thật (Albedo & Normal) tồn tại");
+
+            // 6. Kiểm tra Animator Controller và Blend Tree Locomotion (Hạng mục 1)
+            RuntimeAnimatorController animCtrl = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/_Project/Animations/Player_AnimatorController.controller");
+            Assert(animCtrl != null, "Tồn tại Player_AnimatorController với Blend Tree Locomotion");
+
+            // 7. Kiểm tra Vật liệu Xe cộ & Đèn pha URP Lit (Hạng mục 3)
+            Material carPaint = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Paint.mat");
+            Assert(carPaint != null, "Tồn tại Material Sơn bóng xe Taxi Vàng: MAT_Vehicle_Paint.mat");
+
+            Material headlightMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Headlights.mat");
+            Assert(headlightMat != null, "Tồn tại Material Đèn pha phát sáng: MAT_Vehicle_Headlights.mat");
         }
 
         private static void Assert(bool condition, string testName)

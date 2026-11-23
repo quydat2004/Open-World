@@ -10,14 +10,18 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 namespace HueCity.EditorTools
 {
     /// <summary>
     /// Trình dựng Scene Lát cắt dọc chi tiết (Vertical Slice Scene Builder) cho TP. Huế - Giai đoạn 3.
-    /// Dựng hoàn chỉnh 1 ngã tư biểu tượng: 4 kiểu kiến trúc Huế, đường nhựa & vạch Zebra, đèn giao thông,
-    /// bồn cây, quán cà phê vỉa hè, dây điện đô thị, biển báo tên đường, hệ thống Ngày/Đêm và 18 NPC.
+    /// Tích hợp toàn diện Đợt nâng cấp đồ họa chân thực (Realism Overhaul):
+    /// - Hạng mục 4: URP ACES Tonemapping, Bloom, Color Adjustments, SSAO, Procedural Skybox, Nắng chiều Huế 45° ấm (#FFF4E0).
+    /// - Hạng mục 2: Tách rõ mặt đường nhựa PBR (Y=0.0m), vỉa hè nâng cao (Y=+0.15m, gờ bó vỉa đá granite), vạch kẻ đường PBR (Y=+0.005m).
+    /// - Phương tiện, props văn hóa vỉa hè, dây điện chằng chịt, biển tên đường, 18 NPC FSM thông minh.
     /// </summary>
     public static class Phase3SceneBuilder
     {
@@ -26,11 +30,11 @@ namespace HueCity.EditorTools
         {
             EditorApplication.delayCall += () =>
             {
-                string markerPath = "Temp/Phase3_V3_Built.marker";
+                string markerPath = "Temp/Phase3_Realism_Built.marker";
                 if (!File.Exists(markerPath))
                 {
                     File.WriteAllText(markerPath, "built");
-                    Debug.Log("[HueCity] Tự động khởi tạo và lưu Scene Lát cắt dọc Giai đoạn 3...");
+                    Debug.Log("[HueCity] Tự động khởi tạo và lưu Scene Lát cắt dọc Giai đoạn 3 (Realism Overhaul)...");
                     BuildScene(true);
                 }
             };
@@ -44,30 +48,44 @@ namespace HueCity.EditorTools
 
         public static void BuildScene(bool silent)
         {
+            // 0. Đảm bảo toàn bộ URP Asset, Volume Profile, Skybox & PBR Materials đã sẵn sàng
+            RealismOverhaulSetup.EnsureFullSetup();
+
             // 1. Tạo scene mới
             Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-            // 2. Thiết lập Ánh sáng Điện ảnh & Chu kỳ Ngày/Đêm (Day/Night Cycle)
+            // 2. Thiết lập Ánh sáng Điện ảnh & Chu kỳ Ngày/Đêm (Hạng mục 4)
             GameObject lightObj = new GameObject("Directional Light - Hue Sun");
             Light sunLight = lightObj.AddComponent<Light>();
             sunLight.type = LightType.Directional;
-            sunLight.color = new Color(1.0f, 0.88f, 0.65f); // Nắng vàng ấm đặc trưng miền Trung
+            // Nắng vàng ấm đặc trưng miền Trung (#FFF4E0)
+            sunLight.color = new Color(1.0f, 0.957f, 0.878f);
             sunLight.intensity = 1.35f;
             sunLight.shadows = LightShadows.Soft;
-            lightObj.transform.rotation = Quaternion.Euler(42f, -38f, 0f);
+            sunLight.shadowResolution = LightShadowResolution.VeryHigh;
+            // Góc chiếu nghiêng khoảng 45 độ theo đúng yêu cầu
+            lightObj.transform.rotation = Quaternion.Euler(45f, -38f, 0f);
 
             DayNightCycle dayNight = lightObj.AddComponent<DayNightCycle>();
             dayNight.SetTimeOfDay(17.0f); // Bắt đầu ở Giờ Vàng (Golden Hour) hoàng hôn Huế
 
-            // Thêm Ambient Light ấm áp
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.38f, 0.40f, 0.46f);
+            // Gán Mặt trời và Procedural Skybox vào RenderSettings
+            Material skyboxMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Skybox_Procedural.mat");
+            if (skyboxMat != null)
+            {
+                RenderSettings.skybox = skyboxMat;
+            }
+            RenderSettings.sun = sunLight;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
 
-            // 3. Hệ thống Quản lý Giác quan thế giới
+            // 3. Thiết lập Global Volume (Post-Processing) URP (Hạng mục 4)
+            SetupGlobalPostProcessingVolume();
+
+            // 4. Hệ thống Quản lý Giác quan thế giới
             GameObject stimulusObj = new GameObject("WorldStimulusManager");
             stimulusObj.AddComponent<WorldStimulusManager>();
 
-            // 4. Đưa Model Lát cắt dọc chi tiết (Ngã tư, Nhà ống, Biệt thự Pháp, Đèn, Cây xanh) vào Scene
+            // 5. Đưa Model Lát cắt dọc chi tiết (Ngã tư, Nhà ống, Biệt thự Pháp, Đèn, Cây xanh) vào Scene
             string detailedFbxPath = "Assets/_Project/Models/Hue_Vertical_Slice_Detailed.fbx";
             GameObject detailedPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(detailedFbxPath);
 
@@ -78,7 +96,7 @@ namespace HueCity.EditorTools
                 intersectionInstance.name = "Hue_Intersection_VerticalSlice";
                 intersectionInstance.transform.position = Vector3.zero;
 
-                // Gắn MeshCollider và thiết lập Static cho NavMesh
+                // Gán MeshCollider và thiết lập Static cho NavMesh
                 SetupCollidersAndNavigation(intersectionInstance);
             }
             else
@@ -86,46 +104,251 @@ namespace HueCity.EditorTools
                 Debug.LogWarning($"[HueCity] Chưa tìm thấy model tại {detailedFbxPath}");
             }
 
-            // 5. Bake NavMesh tự động cho toàn bộ vỉa hè, vạch đi bộ và lòng đường ngã tư
+            // 6. Xây dựng Cấu trúc Đường & Vỉa hè có Chiều sâu PBR (Hạng mục 2)
+            SetupPBRRoadAndSidewalkDepth(intersectionInstance);
+
+            // 7. Bake NavMesh tự động cho toàn bộ vỉa hè, vạch đi bộ và lòng đường ngã tư
             UnityEditor.AI.NavMeshBuilder.BuildNavMesh();
             Debug.Log("[HueCity] Đã bake xong NavMesh cho Ngã tư Lát cắt dọc!");
 
-            // 6. Tạo Nhân vật (Player) đi bộ trên vỉa hè
+            // 8. Tạo Nhân vật (Player) đi bộ trên vỉa hè
             GameObject player = CreatePlayerObject(new Vector3(13f, 1.2f, 13f));
             player.tag = "Player";
 
-            // 7. Tạo Xe Taxi Huế (Xanh SM) dừng trước vạch đèn đỏ
+            // 9. Tạo Xe Taxi Huế (Xanh SM) dừng trước vạch đèn đỏ
             GameObject taxi = CreateTaxiObject(new Vector3(3.5f, 0.5f, 18f));
 
-            // 8. Đặt các phương tiện văn hóa và quán cà phê vỉa hè
+            // 10. Đặt các phương tiện văn hóa và quán cà phê vỉa hè
             SpawnStreetCultureProps();
 
-            // 9. Dây điện chằng chịt đô thị & Biển báo giao thông đường phố Huế
+            // 11. Dây điện chằng chịt đô thị & Biển báo giao thông đường phố Huế
             SetupUrbanStreetCablesAndSigns();
 
-            // 10. Tạo Đám đông NPC (18 NPC đi dạo, qua vạch đi bộ, ngồi quán nước)
+            // 12. Tạo Đám đông NPC (18 NPC đi dạo, qua vạch đi bộ, ngồi quán nước)
             SetupNPCCrowd(player);
 
-            // 11. Thiết lập Cinemachine Camera
+            // 13. Thiết lập Cinemachine Camera & URP Camera Post-Processing
             CreateCameraSetup(player, taxi);
 
-            // 12. Lưu Scene vào Assets/_Project/Scenes/Phase3_VerticalSlice.unity
+            // 14. Lưu Scene vào Assets/_Project/Scenes/Phase3_VerticalSlice.unity
             string scenePath = "Assets/_Project/Scenes/Phase3_VerticalSlice.unity";
             EditorSceneManager.SaveScene(newScene, scenePath);
             AssetDatabase.Refresh();
 
-            Debug.Log($"<color=green>[HueCity]</color> Đã tạo thành công Scene Lát cắt dọc chi tiết tại: {scenePath}");
-            if (!Application.isBatchMode && !silent)
+            Debug.Log($"<color=green>[HueCity]</color> Đã tạo thành công Scene Lát cắt dọc chi tiết (Realism Overhaul) tại: {scenePath}");
+        }
+
+        private static void SetupGlobalPostProcessingVolume()
+        {
+            GameObject volumeObj = new GameObject("Global_PostProcessing_Volume");
+            Volume volume = volumeObj.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.priority = 1.0f;
+
+            string profilePath = "Assets/_Project/Settings/Hue_PostProcessing_Profile.asset";
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
+            if (profile != null)
             {
-                EditorUtility.DisplayDialog("HueCity - Giai đoạn 3: Vertical Slice", 
-                    "Đã hoàn thành Lát cắt dọc 1 ngã tư biểu tượng TP. Huế!\n\n" +
-                    "• Đường sá chân thực: Nhựa đường sẫm, vạch kẻ đường, vạch Zebra người đi bộ, bó vỉa đá granite.\n" +
-                    "• Kiến trúc thực tế: Nhà ống hiện đại (cửa cuốn, ban công kính, bồn inox, điều hòa), Biệt thự Pháp vôi vàng ngói đỏ, Khách sạn góc phố sang trọng, Quán cà phê mái hiên bạt.\n" +
-                    "• Dây điện đô thị & Biển báo đường Hùng Vương / Lê Lợi.\n" +
-                    "• Chu kỳ Ngày/Đêm (Day/Night Cycle) với nắng vàng hoàng hôn Cố Đô.\n" +
-                    "• Đèn giao thông, đèn cổ điển ven sông, bồn cây xanh bóng mát.\n" +
-                    "• 18 NPC FSM thông minh đi bộ & ngồi quán nước.\n" +
-                    "• Bấm Play để trải nghiệm!", "Playtest Ngay");
+                volume.sharedProfile = profile;
+                Debug.Log("[HueCity] Đã liên kết Hue_PostProcessing_Profile (ACES, Bloom, SSAO, Color Adjustments) vào Global Volume!");
+            }
+        }
+
+        private static void SetupPBRRoadAndSidewalkDepth(GameObject root)
+        {
+            Material roadMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Road_Asphalt.mat");
+            Material sidewalkMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Sidewalk_Concrete.mat");
+            Material curbMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Curb_Stone.mat");
+            Material whiteLineMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_RoadMarking_White.mat");
+            Material yellowLineMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_RoadMarking_Yellow.mat");
+
+            // 1. Gán Material PBR vào Mesh trong Model FBX nếu có
+            if (root != null)
+            {
+                MeshRenderer[] renderers = root.GetComponentsInChildren<MeshRenderer>(true);
+                foreach (var mr in renderers)
+                {
+                    string name = mr.gameObject.name;
+                    if (name.Contains("Road") && roadMat != null)
+                    {
+                        mr.sharedMaterial = roadMat;
+                    }
+                    else if (name.Contains("Sidewalk") && sidewalkMat != null)
+                    {
+                        mr.sharedMaterial = sidewalkMat;
+                    }
+                    else if (name.Contains("Zebra") || name.Contains("Marking"))
+                    {
+                        mr.sharedMaterial = whiteLineMat;
+                    }
+                }
+            }
+
+            // 2. Tạo hệ thống Khối hình học Đường sá & Vỉa hè chuẩn phân tầng chiều sâu:
+            // - Lòng đường nhựa: Y = 0.0m
+            // - Vỉa hè nâng cao: Y = +0.15m (với gờ bó vỉa đá granite)
+            // - Vạch kẻ đường: Y = +0.005m (5mm trên mặt đường nhựa, triệt tiêu hoàn toàn Z-fighting)
+            GameObject roadSystem = new GameObject("Road_And_Sidewalk_System_PBR");
+
+            // A. Mặt đường nhựa (Asphalt Road Surface) tại Y = 0.0m
+            GameObject roadPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            roadPlane.name = "PBR_Asphalt_Roadway";
+            roadPlane.transform.SetParent(roadSystem.transform);
+            roadPlane.transform.position = new Vector3(0f, 0.0f, 0f);
+            roadPlane.transform.localScale = new Vector3(7.0f, 1.0f, 7.0f); // 70m x 70m ngã tư
+            if (roadMat != null) roadPlane.GetComponent<Renderer>().sharedMaterial = roadMat;
+            GameObjectUtility.SetStaticEditorFlags(roadPlane, StaticEditorFlags.NavigationStatic);
+
+            // B. Bốn khối Vỉa hè nâng cao Y = +0.15m với Gờ bó vỉa Granite
+            Vector3[] sidewalkCenters = new Vector3[]
+            {
+                new Vector3(21.0f, 0.075f, 21.0f),   // Đông Bắc
+                new Vector3(-21.0f, 0.075f, 21.0f),  // Tây Bắc
+                new Vector3(21.0f, 0.075f, -21.0f),  // Đông Nam
+                new Vector3(-21.0f, 0.075f, -21.0f)  // Tây Nam
+            };
+
+            for (int i = 0; i < sidewalkCenters.Length; i++)
+            {
+                GameObject sidewalkBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                sidewalkBox.name = $"Raised_Sidewalk_{i}";
+                sidewalkBox.transform.SetParent(roadSystem.transform);
+                sidewalkBox.transform.position = sidewalkCenters[i];
+                sidewalkBox.transform.localScale = new Vector3(28.0f, 0.15f, 28.0f);
+                if (sidewalkMat != null) sidewalkBox.GetComponent<Renderer>().sharedMaterial = sidewalkMat;
+                GameObjectUtility.SetStaticEditorFlags(sidewalkBox, StaticEditorFlags.NavigationStatic);
+
+                // Gờ bó vỉa đá Granite dọc theo mép trong tiếp giáp mặt đường
+                CreateCurbBorders(roadSystem.transform, sidewalkCenters[i], curbMat);
+            }
+
+            // C. Vạch kẻ đường (Road Markings) tại Y = +0.005m (5mm)
+            CreateRoadMarkings(roadSystem.transform, whiteLineMat, yellowLineMat);
+        }
+
+        private static void CreateCurbBorders(Transform parent, Vector3 center, Material curbMat)
+        {
+            float signX = Mathf.Sign(center.x);
+            float signZ = Mathf.Sign(center.z);
+
+            // Gờ bó vỉa cạnh X
+            GameObject curbX = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            curbX.name = "Curb_Border_X";
+            curbX.transform.SetParent(parent);
+            curbX.transform.position = new Vector3(center.x, 0.08f, center.z - signZ * 14.1f);
+            curbX.transform.localScale = new Vector3(28.0f, 0.16f, 0.25f);
+            if (curbMat != null) curbX.GetComponent<Renderer>().sharedMaterial = curbMat;
+
+            // Gờ bó vỉa cạnh Z
+            GameObject curbZ = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            curbZ.name = "Curb_Border_Z";
+            curbZ.transform.SetParent(parent);
+            curbZ.transform.position = new Vector3(center.x - signX * 14.1f, 0.08f, center.z);
+            curbZ.transform.localScale = new Vector3(0.25f, 0.16f, 28.0f);
+            if (curbMat != null) curbZ.GetComponent<Renderer>().sharedMaterial = curbMat;
+        }
+
+        private static void CreateRoadMarkings(Transform parent, Material whiteMat, Material yellowMat)
+        {
+            GameObject markingsParent = new GameObject("PBR_Road_Markings_Y0005");
+            markingsParent.transform.SetParent(parent);
+
+            float markY = 0.005f; // Cao hơn mặt đường 5mm để không bị nhấp nháy Z-fighting
+
+            // 1. Vạch đôi vàng phân làn trung tâm (Double Yellow Center Line)
+            // Nhánh Bắc (Z: 7m -> 35m)
+            CreateCenterYellowLine(markingsParent.transform, new Vector3(0f, markY, 21.0f), 28.0f, false, yellowMat);
+            // Nhánh Nam (Z: -7m -> -35m)
+            CreateCenterYellowLine(markingsParent.transform, new Vector3(0f, markY, -21.0f), 28.0f, false, yellowMat);
+            // Nhánh Đông (X: 7m -> 35m)
+            CreateCenterYellowLine(markingsParent.transform, new Vector3(21.0f, markY, 0f), 28.0f, true, yellowMat);
+            // Nhánh Tây (X: -7m -> -35m)
+            CreateCenterYellowLine(markingsParent.transform, new Vector3(-21.0f, markY, 0f), 28.0f, true, yellowMat);
+
+            // 2. Vạch dừng xe (Stop Line) màu trắng trước ngã tư
+            CreateStopLine(markingsParent.transform, new Vector3(0f, markY, 8.5f), 13.0f, true, whiteMat);
+            CreateStopLine(markingsParent.transform, new Vector3(0f, markY, -8.5f), 13.0f, true, whiteMat);
+            CreateStopLine(markingsParent.transform, new Vector3(8.5f, markY, 0f), 13.0f, false, whiteMat);
+            CreateStopLine(markingsParent.transform, new Vector3(-8.5f, markY, 0f), 13.0f, false, whiteMat);
+
+            // 3. Vạch qua đường cho người đi bộ (Zebra Crossings) tại 4 nhánh
+            CreateZebraCrossing(markingsParent.transform, new Vector3(0f, markY, 10.5f), false, whiteMat);
+            CreateZebraCrossing(markingsParent.transform, new Vector3(0f, markY, -10.5f), false, whiteMat);
+            CreateZebraCrossing(markingsParent.transform, new Vector3(10.5f, markY, 0f), true, whiteMat);
+            CreateZebraCrossing(markingsParent.transform, new Vector3(-10.5f, markY, 0f), true, whiteMat);
+        }
+
+        private static void CreateCenterYellowLine(Transform parent, Vector3 center, float length, bool isHorizontal, Material mat)
+        {
+            float spacing = 0.18f;
+            float width = 0.15f;
+
+            for (int i = -1; i <= 1; i += 2)
+            {
+                GameObject line = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                line.name = "Yellow_Center_Line";
+                line.transform.SetParent(parent);
+                line.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+                if (isHorizontal)
+                {
+                    line.transform.position = new Vector3(center.x, center.y, center.z + i * (spacing * 0.5f));
+                    line.transform.localScale = new Vector3(length, width, 1f);
+                }
+                else
+                {
+                    line.transform.position = new Vector3(center.x + i * (spacing * 0.5f), center.y, center.z);
+                    line.transform.localScale = new Vector3(width, length, 1f);
+                }
+
+                Object.DestroyImmediate(line.GetComponent<Collider>());
+                if (mat != null) line.GetComponent<Renderer>().sharedMaterial = mat;
+            }
+        }
+
+        private static void CreateStopLine(Transform parent, Vector3 center, float width, bool isHorizontal, Material mat)
+        {
+            GameObject line = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            line.name = "White_Stop_Line";
+            line.transform.SetParent(parent);
+            line.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            line.transform.position = center;
+            line.transform.localScale = isHorizontal ? new Vector3(width, 0.45f, 1f) : new Vector3(0.45f, width, 1f);
+
+            Object.DestroyImmediate(line.GetComponent<Collider>());
+            if (mat != null) line.GetComponent<Renderer>().sharedMaterial = mat;
+        }
+
+        private static void CreateZebraCrossing(Transform parent, Vector3 center, bool isHorizontal, Material mat)
+        {
+            int stripeCount = 8;
+            float stripeWidth = 0.50f;
+            float stripeLength = 3.6f;
+            float stripeGap = 0.50f;
+            float totalSpan = stripeCount * (stripeWidth + stripeGap);
+            float startOffset = -totalSpan * 0.5f + (stripeWidth + stripeGap) * 0.5f;
+
+            for (int i = 0; i < stripeCount; i++)
+            {
+                GameObject stripe = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                stripe.name = $"Zebra_Stripe_{i}";
+                stripe.transform.SetParent(parent);
+                stripe.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+                float offset = startOffset + i * (stripeWidth + stripeGap);
+                if (isHorizontal)
+                {
+                    stripe.transform.position = new Vector3(center.x, center.y, center.z + offset);
+                    stripe.transform.localScale = new Vector3(stripeLength, stripeWidth, 1f);
+                }
+                else
+                {
+                    stripe.transform.position = new Vector3(center.x + offset, center.y, center.z);
+                    stripe.transform.localScale = new Vector3(stripeWidth, stripeLength, 1f);
+                }
+
+                Object.DestroyImmediate(stripe.GetComponent<Collider>());
+                if (mat != null) stripe.GetComponent<Renderer>().sharedMaterial = mat;
             }
         }
 
@@ -156,22 +379,32 @@ namespace HueCity.EditorTools
 
             string charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
             GameObject charPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath);
+            GameObject visualObj = null;
 
             if (charPrefab != null)
             {
-                GameObject charInstance = (GameObject)PrefabUtility.InstantiatePrefab(charPrefab);
-                charInstance.name = "Visual_Humanoid";
-                charInstance.transform.SetParent(player.transform);
-                charInstance.transform.localPosition = Vector3.zero;
-                charInstance.transform.localRotation = Quaternion.identity;
-            }
-            else
-            {
-                GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                capsule.name = "Visual";
-                capsule.transform.SetParent(player.transform);
-                capsule.transform.localPosition = new Vector3(0f, 1f, 0f);
-                Object.DestroyImmediate(capsule.GetComponent<Collider>());
+                visualObj = (GameObject)PrefabUtility.InstantiatePrefab(charPrefab);
+                visualObj.name = "Visual_Humanoid";
+                visualObj.transform.SetParent(player.transform);
+                visualObj.transform.localPosition = Vector3.zero;
+                visualObj.transform.localRotation = Quaternion.identity;
+
+                // Gắn Animator & Controller với Blend Tree mượt mà (Hạng mục 1)
+                Animator animator = visualObj.GetComponent<Animator>();
+                if (animator == null) animator = visualObj.AddComponent<Animator>();
+
+                RuntimeAnimatorController animController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/_Project/Animations/Player_AnimatorController.controller");
+                if (animController != null)
+                {
+                    animator.runtimeAnimatorController = animController;
+                }
+
+                // Cấu hình Avatar từ Humanoid Model
+                Animator prefabAnim = charPrefab.GetComponent<Animator>();
+                if (prefabAnim != null && prefabAnim.avatar != null)
+                {
+                    animator.avatar = prefabAnim.avatar;
+                }
             }
 
             CharacterController cc = player.AddComponent<CharacterController>();
@@ -220,6 +453,20 @@ namespace HueCity.EditorTools
                 taxiVisual.transform.SetParent(taxi.transform);
                 taxiVisual.transform.localPosition = Vector3.zero;
                 taxiVisual.transform.localRotation = Quaternion.identity;
+
+                // Gán vật liệu sơn bóng và đèn pha URP Lit
+                Material carPaint = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Paint.mat");
+                if (carPaint != null)
+                {
+                    var renderers = taxiVisual.GetComponentsInChildren<MeshRenderer>();
+                    foreach (var mr in renderers)
+                    {
+                        if (!mr.gameObject.name.Contains("Wheel") && !mr.gameObject.name.Contains("Glass"))
+                        {
+                            mr.sharedMaterial = carPaint;
+                        }
+                    }
+                }
 
                 wheelFL_Mesh = taxiVisual.transform.Find("Wheel_FL");
                 wheelFR_Mesh = taxiVisual.transform.Find("Wheel_FR");
@@ -318,9 +565,9 @@ namespace HueCity.EditorTools
                 new Vector3(-11.5f, 6.0f, 14.5f)
             };
 
-            Material cableMat = new Material(Shader.Find("Standard"));
+            Material cableMat = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
             cableMat.color = new Color(0.08f, 0.08f, 0.08f);
-            cableMat.SetFloat("_Glossiness", 0.1f);
+            cableMat.SetFloat("_Smoothness", 0.1f);
 
             for (int i = 0; i < startPoles.Length; i++)
             {
@@ -369,10 +616,10 @@ namespace HueCity.EditorTools
             pole.transform.localPosition = new Vector3(0f, 1.4f, 0f);
             pole.transform.localScale = new Vector3(0.08f, 1.4f, 0.08f);
 
-            Material poleMat = new Material(Shader.Find("Standard"));
+            Material poleMat = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
             poleMat.color = new Color(0.72f, 0.74f, 0.78f);
             poleMat.SetFloat("_Metallic", 0.9f);
-            poleMat.SetFloat("_Glossiness", 0.4f);
+            poleMat.SetFloat("_Smoothness", 0.4f);
             pole.GetComponent<Renderer>().material = poleMat;
 
             // Biển tên đường chữ nhật màu xanh biển báo
@@ -382,9 +629,9 @@ namespace HueCity.EditorTools
             plate.transform.localPosition = new Vector3(0f, 2.65f, 0f);
             plate.transform.localScale = new Vector3(0.85f, 0.28f, 0.04f);
 
-            Material plateMat = new Material(Shader.Find("Standard"));
+            Material plateMat = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
             plateMat.color = new Color(0.06f, 0.28f, 0.72f); // Xanh dương biển chỉ dẫn
-            plateMat.SetFloat("_Glossiness", 0.5f);
+            plateMat.SetFloat("_Smoothness", 0.5f);
             plate.GetComponent<Renderer>().material = plateMat;
         }
 
@@ -492,8 +739,13 @@ namespace HueCity.EditorTools
             GameObject mainCamObj = new GameObject("Main Camera");
             mainCamObj.tag = "MainCamera";
             mainCamObj.transform.position = new Vector3(13f, 4f, 8f);
-            mainCamObj.AddComponent<UnityEngine.Camera>();
+            UnityEngine.Camera cam = mainCamObj.AddComponent<UnityEngine.Camera>();
             mainCamObj.AddComponent<AudioListener>();
+
+            // Bật URP Post-Processing trên Main Camera
+            UniversalAdditionalCameraData camData = mainCamObj.AddComponent<UniversalAdditionalCameraData>();
+            camData.renderPostProcessing = true;
+
             CinemachineBrain brain = mainCamObj.AddComponent<CinemachineBrain>();
             brain.m_DefaultBlend.m_Time = 0.8f;
 
