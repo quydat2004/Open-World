@@ -1,0 +1,11 @@
+================================================================================
+  BÁO CÁO ĐÓNG GÓI DỰ ÁN (BUILD REPORT) - HUECITY
+  Thời gian thực hiện: 2026-11-23 09:08:16
+================================================================================
+Trạng thái (Result): Cancelled
+Thời gian đóng gói: 3.3s
+Kích thước bản Build: 0.00 MB
+Đường dẫn Executable: D:\Dat\Vscode\Tu_hoc\Unity\Project\HueCity\Builds/HueCity_Windows64\HueCity.exe
+Tổng số lỗi (Errors): 1
+Tổng số cảnh báo (Warnings): 0
+================================================================================
