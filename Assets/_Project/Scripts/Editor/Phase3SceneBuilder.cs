@@ -29,11 +29,35 @@ namespace HueCity.EditorTools
         [InitializeOnLoadMethod]
         private static void AutoEnsureSceneBuiltOnCompile()
         {
+            EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
+            {
+                if (state == PlayModeStateChange.EnteredEditMode)
+                {
+                    EditorApplication.delayCall += () =>
+                    {
+                        string markerPath = "Temp/Phase3_VerticalSlice_Built.marker";
+                        if (!File.Exists(markerPath))
+                        {
+                            File.WriteAllText(markerPath, "built");
+                            Debug.Log("[HueCity Phase 3] Dựng mới Scene Giai đoạn 3 khi ở Edit Mode...");
+                            BuildScene(true);
+                        }
+                    };
+                }
+            };
+
             EditorApplication.delayCall += () =>
             {
                 string markerPath = "Temp/Phase3_VerticalSlice_Built.marker";
                 if (!File.Exists(markerPath))
                 {
+                    if (EditorApplication.isPlaying)
+                    {
+                        Debug.Log("[HueCity Phase 3] Đang ở Play Mode - Dừng Play Mode để dựng cảnh mới...");
+                        EditorApplication.isPlaying = false;
+                        return;
+                    }
+
                     if (EditorApplication.isPlayingOrWillChangePlaymode || BuildPipeline.isBuildingPlayer) return;
                     File.WriteAllText(markerPath, "built");
                     Debug.Log("[HueCity Phase 3] Khởi tạo Scene Giai đoạn 3 (Master Realism)...");
@@ -48,13 +72,21 @@ namespace HueCity.EditorTools
             BuildScene(false);
         }
 
+        private static bool isBuildingScene = false;
+
         public static void BuildScene(bool silent)
         {
-            // 0. Đảm bảo toàn bộ URP Asset, Volume Profile, Skybox & PBR Materials đã sẵn sàng
-            RealismOverhaulSetup.EnsureFullSetup();
+            if (isBuildingScene) return;
+            if (EditorApplication.isPlayingOrWillChangePlaymode || BuildPipeline.isBuildingPlayer) return;
+            try
+            {
+                isBuildingScene = true;
 
-            // 1. Tạo scene mới
-            Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                // 0. Đảm bảo toàn bộ URP Asset, Volume Profile, Skybox & PBR Materials đã sẵn sàng
+                RealismOverhaulSetup.EnsureFullSetup();
+
+                // 1. Tạo scene mới
+                Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             // 2. Thiết lập Ánh sáng Điện ảnh & Chu kỳ Ngày/Đêm (Hạng mục 4)
             GameObject lightObj = new GameObject("Directional Light - Hue Sun");
@@ -79,6 +111,12 @@ namespace HueCity.EditorTools
             }
             RenderSettings.sun = sunLight;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
+
+            // Bật Sương mù (Fog) ExponentialSquared che ranh giới bản đồ ở xa (Hạng mục 1)
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.ExponentialSquared;
+            RenderSettings.fogDensity = 0.004f;
+            RenderSettings.fogColor = new Color(0.431f, 0.471f, 0.502f); // #6E7880 hòa vào màu chân trời Procedural Skybox
 
             // 3. Thiết lập Global Volume (Post-Processing) URP (Hạng mục 4)
             SetupGlobalPostProcessingVolume();
@@ -112,6 +150,9 @@ namespace HueCity.EditorTools
             // 6b. Bố trí Dãy Nhà phố Modular Chân thực 3 tầng (House_Modular_01.fbx)
             SpawnModularShophouses();
 
+            // 6c. Phủ Cây xanh đô thị, Bụi hoa và Đèn đường vỉa hè (Hạng mục 2)
+            SpawnTreesAndSidewalkLandscape();
+
             // 7. Bake NavMesh tự động cho toàn bộ vỉa hè, vạch đi bộ và lòng đường ngã tư
             UnityEditor.AI.NavMeshBuilder.BuildNavMesh();
             Debug.Log("[HueCity] Đã bake xong NavMesh cho Ngã tư Lát cắt dọc!");
@@ -141,6 +182,11 @@ namespace HueCity.EditorTools
             AssetDatabase.Refresh();
 
             Debug.Log($"<color=green>[HueCity]</color> Đã tạo thành công Scene Lát cắt dọc chi tiết (Realism Overhaul) tại: {scenePath}");
+            }
+            finally
+            {
+                isBuildingScene = false;
+            }
         }
 
         private static void SetupGlobalPostProcessingVolume()
@@ -204,6 +250,16 @@ namespace HueCity.EditorTools
             if (roadMat != null) roadPlane.GetComponent<Renderer>().sharedMaterial = roadMat;
             GameObjectUtility.SetStaticEditorFlags(roadPlane, StaticEditorFlags.NavigationStatic);
 
+            // A2. Mặt đất mở rộng 500m x 500m phủ cỏ PBR tại Y = -0.05m (Xóa sạch hoàn toàn khoảng không đen/vàng)
+            GameObject terrainGround = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            terrainGround.name = "PBR_Terrain_Grass_Expanded_500m";
+            terrainGround.transform.SetParent(roadSystem.transform);
+            terrainGround.transform.position = new Vector3(0f, -0.05f, 0f);
+            terrainGround.transform.localScale = new Vector3(50.0f, 1.0f, 50.0f); // 500m x 500m bao trọn toàn cảnh
+            Material grassMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Terrain_Grass.mat");
+            if (grassMat != null) terrainGround.GetComponent<Renderer>().sharedMaterial = grassMat;
+            GameObjectUtility.SetStaticEditorFlags(terrainGround, StaticEditorFlags.NavigationStatic);
+
             // B. Bốn khối Vỉa hè nâng cao Y = +0.15m với Gờ bó vỉa Granite
             Vector3[] sidewalkCenters = new Vector3[]
             {
@@ -258,7 +314,7 @@ namespace HueCity.EditorTools
             GameObject markingsParent = new GameObject("PBR_Road_Markings_Y0005");
             markingsParent.transform.SetParent(parent);
 
-            float markY = 0.005f; // Cao hơn mặt đường 5mm để không bị nhấp nháy Z-fighting
+            float markY = 0.010f; // Cao hơn mặt đường 10mm để triệt tiêu hoàn toàn nhấp nháy Z-fighting
 
             // 1. Vạch đôi vàng phân làn trung tâm (Double Yellow Center Line)
             // Nhánh Bắc (Z: 7m -> 35m)
@@ -367,6 +423,21 @@ namespace HueCity.EditorTools
                 return;
             }
 
+            // Nạp 8 vật liệu PBR đặc trưng nhà phố Cố Đô Huế (xóa sạch lỗi mảng trắng phẳng)
+            Material matPlaster = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/plastered_wall_02.mat");
+            Material matGranite = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_Granite.mat");
+            Material matRollerDoor = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_RollerDoor.mat");
+            Material matMetalDark = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_Metal_Dark.mat");
+            Material matGlass = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_Glass.mat");
+            Material matSign = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_Sign.mat");
+            Material matWaterTank = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_WaterTank.mat");
+            Material matAC = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_AC.mat");
+
+            Material[] shophouseMaterials = new Material[]
+            {
+                matGranite, matPlaster, matRollerDoor, matMetalDark, matSign, matGlass, matWaterTank, matAC
+            };
+
             GameObject houseGroup = new GameObject("Modular_Shophouses_Blocks");
 
             // Bố trí các căn nhà phố dọc theo mép lùi vỉa hè (mỗi căn rộng 5m, sâu 10m, cao 10.5m)
@@ -400,6 +471,13 @@ namespace HueCity.EditorTools
                 house.transform.position = p.pos;
                 house.transform.rotation = Quaternion.Euler(0f, p.rotY, 0f);
 
+                // Gán đúng toàn bộ 8 PBR materials cho các submeshes của nhà phố
+                MeshRenderer[] renderers = house.GetComponentsInChildren<MeshRenderer>(true);
+                foreach (var mr in renderers)
+                {
+                    mr.sharedMaterials = shophouseMaterials;
+                }
+
                 // Gán MeshCollider và đánh dấu Static để bake NavMesh và cản nhân vật
                 MeshFilter[] mfs = house.GetComponentsInChildren<MeshFilter>(true);
                 foreach (var mf in mfs)
@@ -413,7 +491,131 @@ namespace HueCity.EditorTools
                 }
             }
 
-            Debug.Log($"[HueCity] Đã bố trí {housePlacements.Length} căn Nhà phố Modular 3 tầng (House_Modular_01.fbx) vào các góc phố!");
+            Debug.Log($"[HueCity] Đã bố trí {housePlacements.Length} căn Nhà phố Modular 3 tầng (House_Modular_01.fbx) với 8 PBR materials hoàn chỉnh!");
+        }
+
+        private static void SpawnTreesAndSidewalkLandscape()
+        {
+            GameObject landscapeGroup = new GameObject("Sidewalk_Foliage_And_Landscape");
+
+            string tree1Path = "Assets/_Project/Models/Tree_Urban_01.fbx";
+            string tree2Path = "Assets/_Project/Models/Tree_Urban_02.fbx";
+            string bushPath = "Assets/_Project/Models/Bush_Flower_01.fbx";
+
+            GameObject tree1Prefab = AssetDatabase.LoadAssetAtPath<GameObject>(tree1Path);
+            GameObject tree2Prefab = AssetDatabase.LoadAssetAtPath<GameObject>(tree2Path);
+            GameObject bushPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(bushPath);
+
+            Material barkMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Tree_Bark.mat");
+            Material leavesMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Foliage_Leaves.mat");
+
+            // Tọa độ trồng cây cách nhau 12-15m dọc theo hai bên vỉa hè
+            Vector3[] treePositions = new Vector3[]
+            {
+                // Vỉa hè Đông Bắc
+                new Vector3(9.2f, 0.15f, 13.0f),
+                new Vector3(9.2f, 0.15f, 26.0f),
+                new Vector3(17.0f, 0.15f, 9.2f),
+                new Vector3(29.0f, 0.15f, 9.2f),
+
+                // Vỉa hè Tây Bắc
+                new Vector3(-9.2f, 0.15f, 13.0f),
+                new Vector3(-9.2f, 0.15f, 26.0f),
+                new Vector3(-17.0f, 0.15f, 9.2f),
+                new Vector3(-29.0f, 0.15f, 9.2f),
+
+                // Vỉa hè Đông Nam
+                new Vector3(9.2f, 0.15f, -13.0f),
+                new Vector3(9.2f, 0.15f, -26.0f),
+                new Vector3(17.0f, 0.15f, -9.2f),
+                new Vector3(29.0f, 0.15f, -9.2f),
+
+                // Vỉa hè Tây Nam
+                new Vector3(-9.2f, 0.15f, -13.0f),
+                new Vector3(-9.2f, 0.15f, -26.0f),
+                new Vector3(-17.0f, 0.15f, -9.2f),
+                new Vector3(-29.0f, 0.15f, -9.2f)
+            };
+
+            for (int i = 0; i < treePositions.Length; i++)
+            {
+                Vector3 pos = treePositions[i];
+                GameObject prefabToUse = (i % 2 == 0) ? tree1Prefab : tree2Prefab;
+                if (prefabToUse != null)
+                {
+                    GameObject tree = (GameObject)PrefabUtility.InstantiatePrefab(prefabToUse);
+                    tree.name = $"Urban_Tree_{i + 1:D2}";
+                    tree.transform.SetParent(landscapeGroup.transform);
+                    tree.transform.position = pos;
+                    tree.transform.rotation = Quaternion.Euler(0f, (i * 67f) % 360f, 0f);
+
+                    foreach (var mr in tree.GetComponentsInChildren<MeshRenderer>(true))
+                    {
+                        if (mr.gameObject.name.Contains("Leaves") && leavesMat != null)
+                            mr.sharedMaterial = leavesMat;
+                        else if (barkMat != null)
+                            mr.sharedMaterial = barkMat;
+                    }
+
+                    // Capsule collider cho thân cây để cản xe và nhân vật
+                    CapsuleCollider cc = tree.AddComponent<CapsuleCollider>();
+                    cc.center = new Vector3(0f, 2.0f, 0f);
+                    cc.radius = 0.35f;
+                    cc.height = 4.0f;
+                    GameObjectUtility.SetStaticEditorFlags(tree, StaticEditorFlags.NavigationStatic);
+                }
+
+                // Trồng kèm bụi hoa giấy Cố Đô dưới gốc cây
+                if (bushPrefab != null)
+                {
+                    GameObject bush = (GameObject)PrefabUtility.InstantiatePrefab(bushPrefab);
+                    bush.name = $"Flower_Bush_{i + 1:D2}";
+                    bush.transform.SetParent(landscapeGroup.transform);
+                    bush.transform.position = pos + new Vector3(0.5f, 0f, 0.4f);
+                    bush.transform.rotation = Quaternion.Euler(0f, (i * 123f) % 360f, 0f);
+                    foreach (var mr in bush.GetComponentsInChildren<MeshRenderer>(true))
+                    {
+                        if (leavesMat != null) mr.sharedMaterial = leavesMat;
+                    }
+                }
+            }
+
+            // Đèn đường đô thị chiếu sáng hoàng hôn ấm áp dọc vỉa hè
+            Vector3[] lampPositions = new Vector3[]
+            {
+                new Vector3(9.2f, 0.15f, 19.5f),
+                new Vector3(-9.2f, 0.15f, 19.5f),
+                new Vector3(9.2f, 0.15f, -19.5f),
+                new Vector3(-9.2f, 0.15f, -19.5f)
+            };
+
+            for (int j = 0; j < lampPositions.Length; j++)
+            {
+                GameObject lamp = new GameObject($"Street_Lamp_Post_{j + 1}");
+                lamp.transform.SetParent(landscapeGroup.transform);
+                lamp.transform.position = lampPositions[j];
+
+                // Cột đèn
+                GameObject pole = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                pole.transform.SetParent(lamp.transform);
+                pole.transform.localPosition = new Vector3(0f, 2.5f, 0f);
+                pole.transform.localScale = new Vector3(0.12f, 2.5f, 0.12f);
+                Material metalMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_Metal_Dark.mat");
+                if (metalMat != null) pole.GetComponent<Renderer>().sharedMaterial = metalMat;
+
+                // Nguồn sáng ấm điểm nhấn
+                GameObject lightPt = new GameObject("Lamp_PointLight");
+                lightPt.transform.SetParent(lamp.transform);
+                lightPt.transform.localPosition = new Vector3(0f, 5.0f, 0f);
+                Light pt = lightPt.AddComponent<Light>();
+                pt.type = LightType.Point;
+                pt.color = new Color(1.0f, 0.88f, 0.70f); // Vàng ấm đèn đường Cố Đô
+                pt.intensity = 2.0f;
+                pt.range = 14.0f;
+                pt.shadows = LightShadows.Soft;
+            }
+
+            Debug.Log($"[HueCity] Đã phủ {treePositions.Length} cây xanh đô thị, bụi hoa giấy và đèn đường ấm áp dọc hai bên vỉa hè!");
         }
 
         private static void SetupCollidersAndNavigation(GameObject root)
@@ -490,6 +692,23 @@ namespace HueCity.EditorTools
                 {
                     animator.avatar = avatar;
                 }
+
+                // Gán đúng 5 bộ vật liệu chân thực PBR cho các mesh con
+                Material skinMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Skin.mat");
+                Material clothesMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Clothes.mat");
+                Material eyesMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Eyes.mat");
+                Material hairMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Hair.mat");
+                Material shoesMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Shoes.mat");
+
+                foreach (var r in visualObj.GetComponentsInChildren<Renderer>(true))
+                {
+                    string n = r.gameObject.name;
+                    if (n.Contains("Body") && skinMat != null) r.sharedMaterial = skinMat;
+                    else if (n.Contains("Clothes") && clothesMat != null) r.sharedMaterial = clothesMat;
+                    else if (n.Contains("Eyes") && eyesMat != null) r.sharedMaterial = eyesMat;
+                    else if (n.Contains("Hair") && hairMat != null) r.sharedMaterial = hairMat;
+                    else if (n.Contains("Shoes") && shoesMat != null) r.sharedMaterial = shoesMat;
+                }
             }
 
             CharacterController cc = player.AddComponent<CharacterController>();
@@ -545,12 +764,29 @@ namespace HueCity.EditorTools
 
                 // Gán vật liệu sơn bóng và đèn pha URP Lit
                 Material carPaint = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Paint.mat");
-                if (carPaint != null)
+                Material carGlass = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Glass.mat");
+                Material headlightMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Headlights.mat");
+                Material tireMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Road_Asphalt.mat");
+
+                if (taxiVisual != null)
                 {
-                    var renderers = taxiVisual.GetComponentsInChildren<MeshRenderer>();
+                    var renderers = taxiVisual.GetComponentsInChildren<MeshRenderer>(true);
                     foreach (var mr in renderers)
                     {
-                        if (!mr.gameObject.name.Contains("Wheel") && !mr.gameObject.name.Contains("Glass"))
+                        string n = mr.gameObject.name;
+                        if (n.Contains("Glass") && carGlass != null)
+                        {
+                            mr.sharedMaterial = carGlass;
+                        }
+                        else if (n.Contains("Headlight") && headlightMat != null)
+                        {
+                            mr.sharedMaterial = headlightMat;
+                        }
+                        else if (n.Contains("Wheel") && tireMat != null)
+                        {
+                            mr.sharedMaterial = tireMat;
+                        }
+                        else if (carPaint != null)
                         {
                             mr.sharedMaterial = carPaint;
                         }
@@ -586,8 +822,23 @@ namespace HueCity.EditorTools
             {
                 GameObject scooter = (GameObject)PrefabUtility.InstantiatePrefab(scooterPrefab);
                 scooter.name = "Street_Scooter_Sidewalk";
-                scooter.transform.position = new Vector3(10.5f, 0.25f, 12.0f);
-                scooter.transform.rotation = Quaternion.Euler(0f, 75f, 0f);
+                scooter.transform.position = new Vector3(10.5f, 0.15f, 12.0f);
+                scooter.transform.rotation = Quaternion.Euler(0f, 75f, -6f); // Hơi nghiêng chân chống tự nhiên
+
+                Material scooterPaint = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Scooter_Paint.mat");
+                Material scooterSeat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Scooter_Seat.mat");
+                Material headlightMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Headlights.mat");
+                Material rubberMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Road_Asphalt.mat");
+
+                foreach (var mr in scooter.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    string n = mr.gameObject.name;
+                    if (n.Contains("Seat") && scooterSeat != null) mr.sharedMaterial = scooterSeat;
+                    else if (n.Contains("Headlight") && headlightMat != null) mr.sharedMaterial = headlightMat;
+                    else if (n.Contains("Wheel") && rubberMat != null) mr.sharedMaterial = rubberMat;
+                    else if (scooterPaint != null) mr.sharedMaterial = scooterPaint;
+                }
+
                 BoxCollider bc = scooter.AddComponent<BoxCollider>();
                 bc.size = new Vector3(0.6f, 1.1f, 1.8f);
                 bc.center = new Vector3(0f, 0.55f, 0f);
@@ -711,17 +962,28 @@ namespace HueCity.EditorTools
             poleMat.SetFloat("_Smoothness", 0.4f);
             pole.GetComponent<Renderer>().material = poleMat;
 
-            // Biển tên đường chữ nhật màu xanh biển báo
+            // Biển tên đường chữ nhật màu xanh biển báo có mặt ký hiệu chữ Việt rõ nét
             GameObject plate = GameObject.CreatePrimitive(PrimitiveType.Cube);
             plate.name = "Plate";
             plate.transform.SetParent(sign.transform);
             plate.transform.localPosition = new Vector3(0f, 2.65f, 0f);
             plate.transform.localScale = new Vector3(0.85f, 0.28f, 0.04f);
 
-            Material plateMat = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
-            plateMat.color = new Color(0.06f, 0.28f, 0.72f); // Xanh dương biển chỉ dẫn
-            plateMat.SetFloat("_Smoothness", 0.5f);
-            plate.GetComponent<Renderer>().material = plateMat;
+            string signMatPath = signName.Contains("HungVuong") 
+                ? "Assets/_Project/Materials/MAT_Sign_HungVuong.mat" 
+                : "Assets/_Project/Materials/MAT_Sign_LeLoi.mat";
+            Material signMat = AssetDatabase.LoadAssetAtPath<Material>(signMatPath);
+            if (signMat != null)
+            {
+                plate.GetComponent<Renderer>().sharedMaterial = signMat;
+            }
+            else
+            {
+                Material plateMat = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
+                plateMat.color = new Color(0.06f, 0.28f, 0.72f);
+                plateMat.SetFloat("_Smoothness", 0.5f);
+                plate.GetComponent<Renderer>().material = plateMat;
+            }
         }
 
         private static void SetupNPCCrowd(GameObject player)
@@ -775,6 +1037,33 @@ namespace HueCity.EditorTools
                         }
                     }
                     if (avatar != null) anim.avatar = avatar;
+
+                    // Gán các biến thể trang phục & màu da đa dạng cho NPC
+                    string[] npcClothesMatNames = new string[]
+                    {
+                        "MAT_NPC_Variant_01_RedShirt",
+                        "MAT_NPC_Variant_02_WhiteTee",
+                        "MAT_NPC_Variant_03_OliveJacket",
+                        "MAT_NPC_Variant_04_BlackLeather",
+                        "MAT_Character_Clothes"
+                    };
+                    Material npcClothesMat = AssetDatabase.LoadAssetAtPath<Material>($"Assets/_Project/Materials/{npcClothesMatNames[i % npcClothesMatNames.Length]}.mat");
+                    Material npcSkinMat = (i % 2 == 0)
+                        ? AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_NPC_Skin_Tan.mat")
+                        : AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Skin.mat");
+                    Material eyesMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Eyes.mat");
+                    Material hairMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Hair.mat");
+                    Material shoesMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Character_Shoes.mat");
+
+                    foreach (var r in visual.GetComponentsInChildren<Renderer>(true))
+                    {
+                        string n = r.gameObject.name;
+                        if (n.Contains("Body") && npcSkinMat != null) r.sharedMaterial = npcSkinMat;
+                        else if (n.Contains("Clothes") && npcClothesMat != null) r.sharedMaterial = npcClothesMat;
+                        else if (n.Contains("Eyes") && eyesMat != null) r.sharedMaterial = eyesMat;
+                        else if (n.Contains("Hair") && hairMat != null) r.sharedMaterial = hairMat;
+                        else if (n.Contains("Shoes") && shoesMat != null) r.sharedMaterial = shoesMat;
+                    }
                 }
                 else
                 {
@@ -896,4 +1185,5 @@ namespace HueCity.EditorTools
         }
     }
 }
+// Trigger domain reload for HueCity Master Realism Overhaul
 #endif

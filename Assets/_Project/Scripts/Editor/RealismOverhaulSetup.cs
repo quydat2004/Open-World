@@ -40,34 +40,50 @@ namespace HueCity.EditorTools
             Debug.Log("<color=green>[HueCity Realism Overhaul]</color> Đã thiết lập hoàn tất URP, SSAO, Post-Processing, Blend Tree và PBR Materials!");
         }
 
+        private static bool isSettingUp = false;
+
         public static void EnsureFullSetup()
         {
-            EnsureDirectories();
-            UniversalRenderPipelineAsset urpAsset = SetupURPAssetsAndRenderer();
-            SetupPostProcessingProfile();
-            SetupProceduralSkybox();
-            SetupPBRMaterials();
-            SetupVehicleMaterials();
-            SetupHumanoidCharacterImporter();
-            SetupPlayerAnimatorController();
-
-            // Kích hoạt URP cho toàn bộ GraphicsSettings và QualitySettings
-            if (urpAsset != null)
+            if (isSettingUp) return;
+            if (EditorApplication.isPlayingOrWillChangePlaymode || BuildPipeline.isBuildingPlayer) return;
+            try
             {
-                if (GraphicsSettings.renderPipelineAsset != urpAsset)
-                {
-                    GraphicsSettings.renderPipelineAsset = urpAsset;
-                    Debug.Log("[HueCity] Đã gán URP_HighFidelity vào GraphicsSettings.renderPipelineAsset.");
-                }
-                if (QualitySettings.renderPipeline != urpAsset)
-                {
-                    QualitySettings.renderPipeline = urpAsset;
-                    Debug.Log("[HueCity] Đã gán URP_HighFidelity vào QualitySettings.renderPipeline.");
-                }
-            }
+                isSettingUp = true;
+                EnsureDirectories();
+                UniversalRenderPipelineAsset urpAsset = SetupURPAssetsAndRenderer();
+                SetupPostProcessingProfile();
+                SetupProceduralSkybox();
+                SetupPBRMaterials();
+                SetupVehicleMaterials();
+                SetupShophouseMaterials();
+                SetupHumanoidCharacterImporter();
+                SetupPlayerAnimatorController();
 
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+                // Kích hoạt URP cho toàn bộ GraphicsSettings và QualitySettings
+                if (urpAsset != null)
+                {
+                    if (GraphicsSettings.renderPipelineAsset != urpAsset)
+                    {
+                        GraphicsSettings.renderPipelineAsset = urpAsset;
+                        Debug.Log("[HueCity] Đã gán URP_HighFidelity vào GraphicsSettings.renderPipelineAsset.");
+                    }
+                    if (QualitySettings.renderPipeline != urpAsset)
+                    {
+                        QualitySettings.renderPipeline = urpAsset;
+                        Debug.Log("[HueCity] Đã gán URP_HighFidelity vào QualitySettings.renderPipeline.");
+                    }
+                }
+
+                // Tự động dựng mới nhất Scene Lát cắt dọc chi tiết (Phase3_VerticalSlice.unity)
+                Phase3SceneBuilder.BuildScene(true);
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
+            finally
+            {
+                isSettingUp = false;
+            }
         }
 
         private static void EnsureDirectories()
@@ -225,10 +241,10 @@ namespace HueCity.EditorTools
 
             skyboxMat.SetFloat("_SunSize", 0.04f);
             skyboxMat.SetFloat("_SunSizeConvergence", 5.0f);
-            skyboxMat.SetFloat("_AtmosphereThickness", 1.08f);
-            skyboxMat.SetColor("_SkyTint", new Color(0.55f, 0.72f, 0.95f)); // Xanh da trời trong trẻo
-            skyboxMat.SetColor("_GroundColor", new Color(0.38f, 0.35f, 0.32f)); // Màu đất trung hòa
-            skyboxMat.SetFloat("_Exposure", 1.15f);
+            skyboxMat.SetFloat("_AtmosphereThickness", 0.8f);
+            skyboxMat.SetColor("_SkyTint", new Color(0.498f, 0.710f, 0.902f)); // #7FB5E6 xanh da trời tự nhiên
+            skyboxMat.SetColor("_GroundColor", new Color(0.431f, 0.471f, 0.502f)); // #6E7880 xám xanh chân trời
+            skyboxMat.SetFloat("_Exposure", 1.1f);
 
             RenderSettings.skybox = skyboxMat;
             EditorUtility.SetDirty(skyboxMat);
@@ -325,7 +341,100 @@ namespace HueCity.EditorTools
             }
             yellowLineMat.SetColor("_BaseColor", new Color(0.96f, 0.74f, 0.12f));
             yellowLineMat.SetFloat("_Smoothness", 0.25f);
+            yellowLineMat.enableInstancing = true;
             EditorUtility.SetDirty(yellowLineMat);
+
+            // 6. Mặt đất mở rộng Cỏ PBR (Terrain Grass 500m x 500m)
+            string grassMatPath = "Assets/_Project/Materials/MAT_Terrain_Grass.mat";
+            Material grassMat = AssetDatabase.LoadAssetAtPath<Material>(grassMatPath);
+            if (grassMat == null)
+            {
+                grassMat = new Material(litShader);
+                grassMat.name = "MAT_Terrain_Grass";
+                AssetDatabase.CreateAsset(grassMat, grassMatPath);
+            }
+            Texture2D grassDiff = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Textures/PBR/Terrain_Grass/grass_diff_1k.jpg");
+            Texture2D grassNor = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Textures/PBR/Terrain_Grass/grass_nor_1k.jpg");
+            if (grassDiff != null) grassMat.SetTexture("_BaseMap", grassDiff);
+            grassMat.SetTextureScale("_BaseMap", new Vector2(50f, 50f));
+            if (grassNor != null)
+            {
+                grassMat.SetTexture("_BumpMap", grassNor);
+                grassMat.SetTextureScale("_BumpMap", new Vector2(50f, 50f));
+                grassMat.SetFloat("_BumpScale", 1.0f);
+                grassMat.EnableKeyword("_NORMALMAP");
+            }
+            grassMat.SetFloat("_Smoothness", 0.15f);
+            grassMat.SetFloat("_Metallic", 0.0f);
+            grassMat.SetColor("_BaseColor", new Color(0.92f, 0.96f, 0.88f));
+            grassMat.enableInstancing = true;
+            EditorUtility.SetDirty(grassMat);
+
+            // 7. Vật liệu Tán lá Cây cối & Hoa cỏ đô thị (Foliage Cards)
+            string foliageMatPath = "Assets/_Project/Materials/MAT_Foliage_Leaves.mat";
+            Material foliageMat = AssetDatabase.LoadAssetAtPath<Material>(foliageMatPath);
+            if (foliageMat == null)
+            {
+                foliageMat = new Material(litShader);
+                foliageMat.name = "MAT_Foliage_Leaves";
+                AssetDatabase.CreateAsset(foliageMat, foliageMatPath);
+            }
+            Texture2D leafDiff = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Textures/PBR/Foliage/leaves_diff_512.png");
+            if (leafDiff != null) foliageMat.SetTexture("_BaseMap", leafDiff);
+            foliageMat.SetFloat("_Cutoff", 0.35f);
+            foliageMat.SetFloat("_Surface", 0.0f); // Opaque with cutout or alpha test
+            foliageMat.EnableKeyword("_ALPHATEST_ON");
+            foliageMat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+            foliageMat.SetFloat("_Smoothness", 0.20f);
+            foliageMat.SetFloat("_Cull", 0.0f); // Double-sided
+            foliageMat.enableInstancing = true;
+            EditorUtility.SetDirty(foliageMat);
+
+            // 8. Vật liệu Thân gỗ Cây xanh (Tree Bark)
+            string barkMatPath = "Assets/_Project/Materials/MAT_Tree_Bark.mat";
+            Material barkMat = AssetDatabase.LoadAssetAtPath<Material>(barkMatPath);
+            if (barkMat == null)
+            {
+                barkMat = new Material(litShader);
+                barkMat.name = "MAT_Tree_Bark";
+                AssetDatabase.CreateAsset(barkMat, barkMatPath);
+            }
+            Texture2D barkDiff = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Textures/PBR/Wood_Dark/dark_wood_diff_1k.jpg");
+            Texture2D barkNor = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Textures/PBR/Wood_Dark/dark_wood_nor_1k.jpg");
+            if (barkDiff != null) barkMat.SetTexture("_BaseMap", barkDiff);
+            barkMat.SetTextureScale("_BaseMap", new Vector2(2f, 6f));
+            if (barkNor != null)
+            {
+                barkMat.SetTexture("_BumpMap", barkNor);
+                barkMat.SetTextureScale("_BumpMap", new Vector2(2f, 6f));
+                barkMat.SetFloat("_BumpScale", 1.2f);
+                barkMat.EnableKeyword("_NORMALMAP");
+            }
+            barkMat.SetFloat("_Smoothness", 0.15f);
+            barkMat.SetColor("_BaseColor", new Color(0.45f, 0.38f, 0.32f));
+            barkMat.enableInstancing = true;
+            EditorUtility.SetDirty(barkMat);
+
+            // 9. Biển tên đường Hùng Vương & Lê Lợi
+            SetupStreetSignMaterial("MAT_Sign_HungVuong", "Assets/_Project/Textures/PBR/Signs/sign_hung_vuong.png", litShader);
+            SetupStreetSignMaterial("MAT_Sign_LeLoi", "Assets/_Project/Textures/PBR/Signs/sign_le_loi.png", litShader);
+        }
+
+        private static void SetupStreetSignMaterial(string matName, string texPath, Shader shader)
+        {
+            string matPath = $"Assets/_Project/Materials/{matName}.mat";
+            Material signMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (signMat == null)
+            {
+                signMat = new Material(shader);
+                signMat.name = matName;
+                AssetDatabase.CreateAsset(signMat, matPath);
+            }
+            Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
+            if (tex != null) signMat.SetTexture("_BaseMap", tex);
+            signMat.SetFloat("_Smoothness", 0.45f);
+            signMat.enableInstancing = true;
+            EditorUtility.SetDirty(signMat);
         }
 
         public static void SetupVehicleMaterials()
@@ -342,12 +451,30 @@ namespace HueCity.EditorTools
                 carPaint.name = "MAT_Vehicle_Paint";
                 AssetDatabase.CreateAsset(carPaint, carPaintPath);
             }
+            carPaint.shader = litShader;
             carPaint.SetColor("_BaseColor", new Color(0.96f, 0.72f, 0.05f)); // Vàng Taxi Huế
             carPaint.SetFloat("_Metallic", 0.80f);
             carPaint.SetFloat("_Smoothness", 0.85f);
+            carPaint.enableInstancing = true;
             EditorUtility.SetDirty(carPaint);
 
-            // 2. Đèn pha phát sáng (Emission Headlights)
+            // 2. Kính xe ô tô tối màu phản chiếu cao (Glass Tinted)
+            string carGlassPath = "Assets/_Project/Materials/MAT_Vehicle_Glass.mat";
+            Material carGlass = AssetDatabase.LoadAssetAtPath<Material>(carGlassPath);
+            if (carGlass == null)
+            {
+                carGlass = new Material(litShader);
+                carGlass.name = "MAT_Vehicle_Glass";
+                AssetDatabase.CreateAsset(carGlass, carGlassPath);
+            }
+            carGlass.shader = litShader;
+            carGlass.SetColor("_BaseColor", new Color(0.12f, 0.15f, 0.18f, 0.75f));
+            carGlass.SetFloat("_Metallic", 0.20f);
+            carGlass.SetFloat("_Smoothness", 0.95f);
+            carGlass.enableInstancing = true;
+            EditorUtility.SetDirty(carGlass);
+
+            // 3. Đèn pha phát sáng (Emission Headlights)
             string headlightPath = "Assets/_Project/Materials/MAT_Vehicle_Headlights.mat";
             Material headlightMat = AssetDatabase.LoadAssetAtPath<Material>(headlightPath);
             if (headlightMat == null)
@@ -356,10 +483,106 @@ namespace HueCity.EditorTools
                 headlightMat.name = "MAT_Vehicle_Headlights";
                 AssetDatabase.CreateAsset(headlightMat, headlightPath);
             }
+            headlightMat.shader = litShader;
             headlightMat.SetColor("_BaseColor", new Color(1.0f, 0.98f, 0.85f));
             headlightMat.EnableKeyword("_EMISSION");
             headlightMat.SetColor("_EmissionColor", new Color(2.5f, 2.4f, 1.8f)); // Ánh sáng đèn pha phát quang
+            headlightMat.enableInstancing = true;
             EditorUtility.SetDirty(headlightMat);
+
+            // 4. Sơn xe máy / xe tay ga (Scooter Body)
+            string scooterPaintPath = "Assets/_Project/Materials/MAT_Scooter_Paint.mat";
+            Material scooterPaint = AssetDatabase.LoadAssetAtPath<Material>(scooterPaintPath);
+            if (scooterPaint == null)
+            {
+                scooterPaint = new Material(litShader);
+                scooterPaint.name = "MAT_Scooter_Paint";
+                AssetDatabase.CreateAsset(scooterPaint, scooterPaintPath);
+            }
+            scooterPaint.shader = litShader;
+            scooterPaint.SetColor("_BaseColor", new Color(0.08f, 0.52f, 0.72f)); // Xanh ngọc thể thao
+            scooterPaint.SetFloat("_Metallic", 0.70f);
+            scooterPaint.SetFloat("_Smoothness", 0.82f);
+            scooterPaint.enableInstancing = true;
+            EditorUtility.SetDirty(scooterPaint);
+
+            // 5. Da yên xe máy (Scooter Seat Leather)
+            string scooterSeatPath = "Assets/_Project/Materials/MAT_Scooter_Seat.mat";
+            Material scooterSeat = AssetDatabase.LoadAssetAtPath<Material>(scooterSeatPath);
+            if (scooterSeat == null)
+            {
+                scooterSeat = new Material(litShader);
+                scooterSeat.name = "MAT_Scooter_Seat";
+                AssetDatabase.CreateAsset(scooterSeat, scooterSeatPath);
+            }
+            scooterSeat.shader = litShader;
+            Texture2D seatLeather = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Textures/PBR/Fabric_Leather/fabric_leather_01_diff_1k.jpg");
+            if (seatLeather != null) scooterSeat.SetTexture("_BaseMap", seatLeather);
+            scooterSeat.SetColor("_BaseColor", new Color(0.20f, 0.20f, 0.20f));
+            scooterSeat.SetFloat("_Metallic", 0.0f);
+            scooterSeat.SetFloat("_Smoothness", 0.25f);
+            scooterSeat.enableInstancing = true;
+            EditorUtility.SetDirty(scooterSeat);
+        }
+
+        public static void SetupShophouseMaterials()
+        {
+            Shader litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+
+            // 1. Tường vôi vàng đặc trưng Cố Đô Huế (French colonial ochre / Hue mustard yellow)
+            SetupLitMaterial("plastered_wall_02", new Color(0.92f, 0.74f, 0.38f), 0.0f, 0.15f, litShader);
+
+            // 2. Đá hoa cương ốp tầng trệt (Dark Polished Granite)
+            SetupLitMaterial("MAT_House_Granite", new Color(0.18f, 0.19f, 0.21f), 0.15f, 0.80f, litShader);
+
+            // 3. Cửa cuốn kim loại tầng trệt (Roller Door)
+            SetupLitMaterial("MAT_House_RollerDoor", new Color(0.68f, 0.70f, 0.74f), 0.85f, 0.45f, litShader);
+
+            // 4. Khung kim loại & Ban công sắt đen (Dark Metal Rails & Trims)
+            SetupLitMaterial("MAT_House_Metal_Dark", new Color(0.12f, 0.12f, 0.13f), 0.90f, 0.35f, litShader);
+
+            // 5. Kính cửa sổ & ban công phản chiếu (Architectural Glass)
+            SetupLitMaterial("MAT_House_Glass", new Color(0.15f, 0.22f, 0.25f, 0.75f), 0.10f, 0.95f, litShader);
+
+            // 6. Biển hiệu kinh doanh shophouse Việt Nam (Signboard)
+            string signMatPath = "Assets/_Project/Materials/MAT_House_Sign.mat";
+            Material signMat = AssetDatabase.LoadAssetAtPath<Material>(signMatPath);
+            if (signMat == null)
+            {
+                signMat = new Material(litShader);
+                signMat.name = "MAT_House_Sign";
+                AssetDatabase.CreateAsset(signMat, signMatPath);
+            }
+            Texture2D signTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Textures/PBR/Shophouse/shophouse_sign_01.jpg");
+            if (signTex != null) signMat.SetTexture("_BaseMap", signTex);
+            signMat.SetFloat("_Smoothness", 0.40f);
+            signMat.enableInstancing = true;
+            EditorUtility.SetDirty(signMat);
+
+            // 7. Bồn nước Inox mái nhà (Rooftop Water Tank)
+            SetupLitMaterial("MAT_House_WaterTank", new Color(0.85f, 0.88f, 0.92f), 0.95f, 0.75f, litShader);
+
+            // 8. Cục nóng máy lạnh (AC Outdoor Condenser Unit)
+            SetupLitMaterial("MAT_House_AC", new Color(0.90f, 0.90f, 0.88f), 0.05f, 0.28f, litShader);
+        }
+
+        private static Material SetupLitMaterial(string matName, Color color, float metallic, float smoothness, Shader shader)
+        {
+            string path = $"Assets/_Project/Materials/{matName}.mat";
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat == null)
+            {
+                mat = new Material(shader);
+                mat.name = matName;
+                AssetDatabase.CreateAsset(mat, path);
+            }
+            mat.shader = shader;
+            mat.SetColor("_BaseColor", color);
+            mat.SetFloat("_Metallic", metallic);
+            mat.SetFloat("_Smoothness", smoothness);
+            mat.enableInstancing = true;
+            EditorUtility.SetDirty(mat);
+            return mat;
         }
 
         public static void SetupHumanoidCharacterImporter()

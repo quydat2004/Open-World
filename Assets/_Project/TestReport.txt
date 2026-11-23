@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 16:49:39
+  Thời gian: 2026-11-23 17:33:13
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -40,7 +40,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 17.4s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 27.9s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -79,6 +79,21 @@
   [PASS] Tồn tại AnimationClip Run có đường cong chạy nước rút
   [PASS] Tồn tại Material Sơn bóng xe Taxi Vàng: MAT_Vehicle_Paint.mat
   [PASS] Tồn tại Material Đèn pha phát sáng: MAT_Vehicle_Headlights.mat
+  [PASS] Hạng mục 1: Tồn tại Material Cỏ PBR Mặt đất mở rộng: MAT_Terrain_Grass.mat
+  [PASS] Hạng mục 1: Tồn tại Material Procedural Skybox ban ngày Huế: MAT_Skybox_Procedural.mat
+  [PASS] Hạng mục 2: Tồn tại Model Cây xanh đô thị 1: Tree_Urban_01.fbx
+  [PASS] Hạng mục 2: Tồn tại Model Cây xanh đô thị 2: Tree_Urban_02.fbx
+  [PASS] Hạng mục 2: Tồn tại Model Bụi hoa giấy Cố Đô: Bush_Flower_01.fbx
+  [PASS] Hạng mục 2: Tồn tại Material Tán lá hoa cỏ: MAT_Foliage_Leaves.mat
+  [PASS] Hạng mục 2: Tồn tại Biển báo đường Hùng Vương có chữ rõ nét
+  [PASS] Hạng mục 3: Tồn tại Model Xe máy 3D hoàn chỉnh: Vehicle_Scooter.fbx (thay thế khối hộp đỏ)
+  [PASS] Hạng mục 3: Tồn tại Material Sơn xe máy thể thao: MAT_Scooter_Paint.mat
+  [PASS] Hạng mục 3: Tồn tại Material Yên da xe máy: MAT_Scooter_Seat.mat
+  [PASS] Hạng mục 3: Tồn tại Material Kính xe tối màu: MAT_Vehicle_Glass.mat
+  [PASS] Hạng mục 5: Tồn tại Material Tường vôi vàng Cố Đô: plastered_wall_02.mat
+  [PASS] Hạng mục 5: Tồn tại Material Đá hoa cương tầng trệt: MAT_House_Granite.mat
+  [PASS] Hạng mục 5: Tồn tại Material Cửa cuốn tầng trệt: MAT_House_RollerDoor.mat
+  [PASS] Hạng mục 5: Tồn tại Material Biển hiệu cửa hàng Huế: MAT_House_Sign.mat
 --- 12. KIỂM THỬ GIAI ĐOẠN 4: THỔI HỒN THÀNH PHỐ (TRAFFIC & LIVING CITY) ---
   [PASS] TrafficWaypoint: Cờ điểm dừng stop-line được thiết lập chính xác
   [PASS] TrafficWaypoint: Hướng lưu thông trục Bắc-Nam (NorthSouth) gán chuẩn
@@ -173,5 +188,5 @@
   [PASS] Tồn tại Player_AnimatorController có Blend Tree Locomotion và IK Pass
 
 ================================================================================
-  TỔNG KẾT: 151 PASSED, 0 FAILED (Thời gian chạy: 859.6ms)
+  TỔNG KẾT: 166 PASSED, 0 FAILED (Thời gian chạy: 3189.6ms)
 ================================================================================

@@ -118,15 +118,20 @@ namespace HueCity.EditorTools
             clip.SetCurve("", typeof(Animator), "Spine Front-Back", breathCurve);
             clip.SetCurve("", typeof(Animator), "Chest Front-Back", breathCurve);
 
-            // Cử động tay thả lỏng nhẹ bên hông
-            Keyframe[] armKeys = new Keyframe[]
+            // Cử động tay thả lỏng tự nhiên xuôi theo thân người (Tránh hoàn toàn lỗi dang tay T-pose ngang)
+            Keyframe[] armDownKeys = new Keyframe[]
             {
-                new Keyframe(0.0f, -0.02f),
-                new Keyframe(1.0f,  0.02f),
-                new Keyframe(2.0f, -0.02f)
+                new Keyframe(0.0f, -0.74f),
+                new Keyframe(1.0f, -0.71f),
+                new Keyframe(2.0f, -0.74f)
             };
-            clip.SetCurve("", typeof(Animator), "Left Arm Down-Up", new AnimationCurve(armKeys));
-            clip.SetCurve("", typeof(Animator), "Right Arm Down-Up", new AnimationCurve(armKeys));
+            clip.SetCurve("", typeof(Animator), "Left Arm Down-Up", new AnimationCurve(armDownKeys));
+            clip.SetCurve("", typeof(Animator), "Right Arm Down-Up", new AnimationCurve(armDownKeys));
+            // Tay hơi gập khuỷu tự nhiên (không duỗi thẳng đơ như khúc gỗ)
+            clip.SetCurve("", typeof(Animator), "Left Forearm Stretch", AnimationCurve.Constant(0f, 2.0f, 0.18f));
+            clip.SetCurve("", typeof(Animator), "Right Forearm Stretch", AnimationCurve.Constant(0f, 2.0f, 0.18f));
+            clip.SetCurve("", typeof(Animator), "Left Arm In-Out", AnimationCurve.Constant(0f, 2.0f, 0.05f));
+            clip.SetCurve("", typeof(Animator), "Right Arm In-Out", AnimationCurve.Constant(0f, 2.0f, 0.05f));
 
             SaveClipWithLoop(clip, path);
             return clip;
@@ -206,6 +211,11 @@ namespace HueCity.EditorTools
             clip.SetCurve("", typeof(Animator), "Right Lower Leg Stretch", new AnimationCurve(rKnee));
             clip.SetCurve("", typeof(Animator), "Left Arm Front-Back", new AnimationCurve(lArm));
             clip.SetCurve("", typeof(Animator), "Right Arm Front-Back", new AnimationCurve(rArm));
+            // Cánh tay buông xuôi và hơi gập khuỷu tự nhiên khi đi bộ
+            clip.SetCurve("", typeof(Animator), "Left Arm Down-Up", AnimationCurve.Constant(0f, 1.0f, -0.70f));
+            clip.SetCurve("", typeof(Animator), "Right Arm Down-Up", AnimationCurve.Constant(0f, 1.0f, -0.70f));
+            clip.SetCurve("", typeof(Animator), "Left Forearm Stretch", AnimationCurve.Constant(0f, 1.0f, 0.22f));
+            clip.SetCurve("", typeof(Animator), "Right Forearm Stretch", AnimationCurve.Constant(0f, 1.0f, 0.22f));
             clip.SetCurve("", typeof(Animator), "RootT.y", new AnimationCurve(hipBob));
 
             SaveClipWithLoop(clip, path);
@@ -273,6 +283,11 @@ namespace HueCity.EditorTools
             clip.SetCurve("", typeof(Animator), "Right Lower Leg Stretch", new AnimationCurve(rKnee));
             clip.SetCurve("", typeof(Animator), "Left Arm Front-Back", new AnimationCurve(lArm));
             clip.SetCurve("", typeof(Animator), "Right Arm Front-Back", new AnimationCurve(rArm));
+            // Cánh tay co lại tư thế chạy (~90 độ khuỷu) và buông xuôi góc thể thao
+            clip.SetCurve("", typeof(Animator), "Left Arm Down-Up", AnimationCurve.Constant(0f, 0.65f, -0.55f));
+            clip.SetCurve("", typeof(Animator), "Right Arm Down-Up", AnimationCurve.Constant(0f, 0.65f, -0.55f));
+            clip.SetCurve("", typeof(Animator), "Left Forearm Stretch", AnimationCurve.Constant(0f, 0.65f, 0.65f));
+            clip.SetCurve("", typeof(Animator), "Right Forearm Stretch", AnimationCurve.Constant(0f, 0.65f, 0.65f));
 
             // Thân người hơi chúi về phía trước khi chạy
             clip.SetCurve("", typeof(Animator), "Spine Front-Back", AnimationCurve.Constant(0f, 0.65f, 0.22f));

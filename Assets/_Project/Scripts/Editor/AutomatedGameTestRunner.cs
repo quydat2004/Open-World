@@ -520,6 +520,33 @@ namespace HueCity.EditorTools
 
             Material headlightMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Headlights.mat");
             Assert(headlightMat != null, "Tồn tại Material Đèn pha phát sáng: MAT_Vehicle_Headlights.mat");
+
+            // 8. Kiểm tra Đợt hoàn thiện Cảnh quan & Đồ họa (5 Hạng mục Realism Overhaul)
+            // Hạng mục 1: Mặt đất mở rộng 500m x 500m phủ cỏ PBR & Skybox ban ngày tự nhiên
+            Material grassMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Terrain_Grass.mat");
+            Assert(grassMat != null, "Hạng mục 1: Tồn tại Material Cỏ PBR Mặt đất mở rộng: MAT_Terrain_Grass.mat");
+
+            Material skyMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Skybox_Procedural.mat");
+            Assert(skyMat != null, "Hạng mục 1: Tồn tại Material Procedural Skybox ban ngày Huế: MAT_Skybox_Procedural.mat");
+
+            // Hạng mục 2: Cây cối đô thị, Hoa cỏ & Biển báo tiếng Việt
+            Assert(File.Exists("Assets/_Project/Models/Tree_Urban_01.fbx"), "Hạng mục 2: Tồn tại Model Cây xanh đô thị 1: Tree_Urban_01.fbx");
+            Assert(File.Exists("Assets/_Project/Models/Tree_Urban_02.fbx"), "Hạng mục 2: Tồn tại Model Cây xanh đô thị 2: Tree_Urban_02.fbx");
+            Assert(File.Exists("Assets/_Project/Models/Bush_Flower_01.fbx"), "Hạng mục 2: Tồn tại Model Bụi hoa giấy Cố Đô: Bush_Flower_01.fbx");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Foliage_Leaves.mat") != null, "Hạng mục 2: Tồn tại Material Tán lá hoa cỏ: MAT_Foliage_Leaves.mat");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Sign_HungVuong.mat") != null, "Hạng mục 2: Tồn tại Biển báo đường Hùng Vương có chữ rõ nét");
+
+            // Hạng mục 3: Xe ô tô mượt mà & Xe máy 3D chân thực
+            Assert(File.Exists("Assets/_Project/Models/Vehicle_Scooter.fbx"), "Hạng mục 3: Tồn tại Model Xe máy 3D hoàn chỉnh: Vehicle_Scooter.fbx (thay thế khối hộp đỏ)");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Scooter_Paint.mat") != null, "Hạng mục 3: Tồn tại Material Sơn xe máy thể thao: MAT_Scooter_Paint.mat");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Scooter_Seat.mat") != null, "Hạng mục 3: Tồn tại Material Yên da xe máy: MAT_Scooter_Seat.mat");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Glass.mat") != null, "Hạng mục 3: Tồn tại Material Kính xe tối màu: MAT_Vehicle_Glass.mat");
+
+            // Hạng mục 5: Nhà phố Modular 3 tầng với 8 vật liệu PBR
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/plastered_wall_02.mat") != null, "Hạng mục 5: Tồn tại Material Tường vôi vàng Cố Đô: plastered_wall_02.mat");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_Granite.mat") != null, "Hạng mục 5: Tồn tại Material Đá hoa cương tầng trệt: MAT_House_Granite.mat");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_RollerDoor.mat") != null, "Hạng mục 5: Tồn tại Material Cửa cuốn tầng trệt: MAT_House_RollerDoor.mat");
+            Assert(AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_House_Sign.mat") != null, "Hạng mục 5: Tồn tại Material Biển hiệu cửa hàng Huế: MAT_House_Sign.mat");
         }
 
         private static void TestPhase4LivingCityTrafficAndNPC()
