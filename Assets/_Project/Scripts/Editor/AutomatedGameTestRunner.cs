@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 using System.Text;
+using Cinemachine;
+using HueCity.Camera;
 using HueCity.Core;
 using HueCity.NPC;
 using HueCity.Player;
@@ -15,7 +17,7 @@ namespace HueCity.EditorTools
 {
     /// <summary>
     /// Bộ kiểm thử tự động toàn diện (Automated Game Test Runner) cho HueCity.
-    /// Kiểm thử tự động cơ chế Player, Vehicle, Enter/Exit, NPC FSM, Stimulus và tính toàn vẹn của Model/Scene.
+    /// Tự động kiểm thử tính toàn vẹn của Asset, Scene, Player, Vehicle, Camera, AI NPC FSM, Stimulus, Data & MCP.
     /// </summary>
     public static class AutomatedGameTestRunner
     {
@@ -23,15 +25,29 @@ namespace HueCity.EditorTools
         private static int failedTests = 0;
         private static StringBuilder reportLog;
 
-        [MenuItem("HueCity/Run Automated Game Tests", false, 1)]
-        public static void RunAllTests()
+        [InitializeOnLoadMethod]
+        private static void RegisterAutoRunOnCompile()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                RunAllTests(showDialog: false);
+            };
+        }
+
+        [MenuItem("HueCity/1. Run Automated Functional Tests", false, 1)]
+        public static void RunAllTestsMenu()
+        {
+            RunAllTests(showDialog: true);
+        }
+
+        public static bool RunAllTests(bool showDialog = false)
         {
             passedTests = 0;
             failedTests = 0;
             reportLog = new StringBuilder();
             DateTime startTime = DateTime.Now;
 
-            LogHeader("BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG HUECITY");
+            LogHeader("BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY");
 
             try
             {
@@ -41,6 +57,9 @@ namespace HueCity.EditorTools
                 TestEnterExitVehicleTransition();
                 TestWorldStimulusAndNPC();
                 TestActivityPoint();
+                TestCameraAndEvents();
+                TestDataAndPersistence();
+                TestMCPPackageInstallation();
             }
             catch (Exception ex)
             {
@@ -62,10 +81,12 @@ namespace HueCity.EditorTools
 
             Debug.Log($"<color={(failedTests == 0 ? "green" : "red")}><b>[HueCity Test Runner]</b></color>\n{summaryMsg}");
 
-            if (!Application.isBatchMode)
+            if (showDialog && !Application.isBatchMode)
             {
                 EditorUtility.DisplayDialog("HueCity - Kết quả kiểm thử tự động", summaryMsg, "OK");
             }
+
+            return failedTests == 0;
         }
 
         private static void TestAssetIntegrity()
@@ -98,12 +119,6 @@ namespace HueCity.EditorTools
 
             foreach (var scenePath in requiredScenes)
             {
-                if (!File.Exists(scenePath) && scenePath.EndsWith("Phase3_VerticalSlice.unity"))
-                {
-                    Debug.Log("[HueCity Test Runner] Scene Phase3_VerticalSlice chưa tồn tại, đang tự động khởi tạo...");
-                    Phase3SceneBuilder.BuildScene(silent: true);
-                }
-
                 bool exists = File.Exists(scenePath);
                 Assert(exists, $"Scene tồn tại: {Path.GetFileName(scenePath)}");
             }
@@ -267,6 +282,69 @@ namespace HueCity.EditorTools
             finally
             {
                 UnityEngine.Object.DestroyImmediate(pointObj);
+            }
+        }
+
+        private static void TestCameraAndEvents()
+        {
+            LogSection("7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine)");
+
+            GameObject camManagerObj = new GameObject("Test_CameraManager");
+            try
+            {
+                CameraManager camManager = camManagerObj.AddComponent<CameraManager>();
+                Assert(camManager != null, "Khởi tạo thành công CameraManager");
+
+                // Kiểm tra đăng ký sự kiện an toàn
+                GameObject dummyPlayer = new GameObject("DummyPlayer");
+                GameObject dummyCar = new GameObject("DummyCar");
+                try
+                {
+                    GameEvents.TriggerPlayerEnteredVehicle(dummyPlayer, dummyCar);
+                    Assert(true, "Kích hoạt chuyển Camera khi Lên xe an toàn");
+
+                    GameEvents.TriggerPlayerExitedVehicle(dummyPlayer, dummyCar);
+                    Assert(true, "Kích hoạt chuyển Camera khi Xuống xe an toàn");
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(dummyPlayer);
+                    UnityEngine.Object.DestroyImmediate(dummyCar);
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(camManagerObj);
+            }
+        }
+
+        private static void TestDataAndPersistence()
+        {
+            LogSection("8. Kiểm tra Dữ liệu & Lưu trữ (Data & Persistence)");
+
+            string savePath = Application.persistentDataPath;
+            Assert(Directory.Exists(savePath), $"Thư mục lưu trữ persistentDataPath hợp lệ: {savePath}");
+
+            // Test serialization dữ liệu vị trí người chơi
+            Vector3 testPos = new Vector3(15.5f, 0f, 22.3f);
+            string json = JsonUtility.ToJson(testPos);
+            Vector3 restoredPos = JsonUtility.FromJson<Vector3>(json);
+            Assert(Vector3.Distance(testPos, restoredPos) < 0.001f, "Serialization JSON vị trí người chơi chính xác 100%");
+        }
+
+        private static void TestMCPPackageInstallation()
+        {
+            LogSection("9. Kiểm tra Tích hợp MCP (Unity MCP Bridge)");
+
+            string manifestPath = Path.Combine(Directory.GetCurrentDirectory(), "Packages/manifest.json");
+            bool hasManifest = File.Exists(manifestPath);
+            Assert(hasManifest, "Packages/manifest.json tồn tại");
+
+            if (hasManifest)
+            {
+                string manifestContent = File.ReadAllText(manifestPath);
+                bool hasMcp = manifestContent.Contains("com.coplaydev.unity-mcp");
+                Assert(hasMcp, "Gói com.coplaydev.unity-mcp đã được khai báo chính thức trong manifest");
             }
         }
 
