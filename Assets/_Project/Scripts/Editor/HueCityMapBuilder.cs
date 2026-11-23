@@ -575,6 +575,8 @@ namespace HueCity.EditorTools
 
             playerObj.AddComponent<PlayerMovement>();
             playerObj.AddComponent<PlayerFootstepAudio>();
+            playerObj.AddComponent<CharacterFootIK>();
+            playerObj.AddComponent<CharacterLookAtIK>();
 
             // Load Player Mesh Model
             GameObject charModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Models/Character_Player.fbx");

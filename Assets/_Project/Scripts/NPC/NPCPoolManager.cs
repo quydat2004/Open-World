@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HueCity.Player;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -52,6 +53,9 @@ namespace HueCity.NPC
                 {
                     controller = obj.AddComponent<NPCController>();
                 }
+                if (obj.GetComponent<CharacterFootIK>() == null) obj.AddComponent<CharacterFootIK>();
+                if (obj.GetComponent<CharacterLookAtIK>() == null) obj.AddComponent<CharacterLookAtIK>();
+                if (obj.GetComponent<NPCIdleBehavior>() == null) obj.AddComponent<NPCIdleBehavior>();
                 obj.SetActive(false);
                 pool.Add(controller);
             }

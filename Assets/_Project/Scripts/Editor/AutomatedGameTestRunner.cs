@@ -110,6 +110,7 @@ namespace HueCity.EditorTools
                 TestPhase6ExpandedMapAndOptimization();
                 TestPhase7AudioWeatherAndPolish();
                 TestCitywideHueMapAndGIS();
+                TestCharacterPipelineAndIK();
             }
             catch (Exception ex)
             {
@@ -893,6 +894,61 @@ namespace HueCity.EditorTools
             // 6. Kiểm tra Scene Hoàn chỉnh Toàn cảnh Thành phố Huế
             string citywideScenePath = "Assets/_Project/Scenes/Phase8_HueCitywide.unity";
             Assert(File.Exists(citywideScenePath), "Tồn tại file Scene Toàn bộ Thành phố Huế: Phase8_HueCitywide.unity");
+        }
+
+        private static void TestCharacterPipelineAndIK()
+        {
+            LogSection("17. KIỂM THỬ PIPELINE RIGGING & ANIMATION NHÂN VẬT (A-POSE, BLEND TREE & FOOT/LOOKAT IK)");
+
+            // 1. Kiểm tra File Model FBX Nhân vật Humanoid A-Pose trên đĩa
+            string playerFbx = "Assets/_Project/Models/Character_Player.fbx";
+            Assert(File.Exists(playerFbx), "Tồn tại file lưới nhân vật A-Pose: Character_Player.fbx");
+
+            string riggedFbx = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
+            Assert(File.Exists(riggedFbx), "Tồn tại file khung xương Humanoid A-Pose 30 bones: Character_Humanoid_Rigged.fbx");
+
+            // 2. Kiểm tra Component Foot IK (CharacterFootIK)
+            GameObject testPlayer = new GameObject("Test_Player_IK");
+            try
+            {
+                Animator anim = testPlayer.AddComponent<Animator>();
+                CharacterFootIK footIK = testPlayer.AddComponent<CharacterFootIK>();
+                Assert(footIK != null, "CharacterFootIK: Khởi tạo thành công bộ điều phối Foot IK bám dốc mặt đường");
+                Assert(footIK.EnableFootIK == true, "CharacterFootIK: Tính năng Foot IK được bật mặc định (EnableFootIK = true)");
+                Assert(footIK.IKWeight == 1.0f, "CharacterFootIK: Trọng số IK đạt 100% (IKWeight = 1.0f)");
+
+                // 3. Kiểm tra Component LookAt IK (CharacterLookAtIK)
+                CharacterLookAtIK lookIK = testPlayer.AddComponent<CharacterLookAtIK>();
+                Assert(lookIK != null, "CharacterLookAtIK: Khởi tạo thành công bộ điều phối giác quan LookAt IK");
+                Assert(lookIK.EnableLookAt == true, "CharacterLookAtIK: Tính năng LookAt IK được bật mặc định");
+                Assert(lookIK.MaxLookAngle == 60.0f, "CharacterLookAtIK: Giới hạn góc quay cổ tự nhiên tối đa 60 độ (không xoắn cổ quá đà)");
+
+                // 4. Kiểm tra Component NPC Idle Variations (NPCIdleBehavior)
+                NPCIdleBehavior idleBehavior = testPlayer.AddComponent<NPCIdleBehavior>();
+                Assert(idleBehavior != null, "NPCIdleBehavior: Khởi tạo thành công bộ điều phối cử chỉ đứng yên");
+                idleBehavior.ForceVariation(1);
+                Assert(idleBehavior.CurrentVariation == 1, "NPCIdleBehavior: Kích hoạt biến thể cử chỉ tự nhiên 1 (nhìn quanh đổi trọng tâm)");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(testPlayer);
+            }
+
+            // 5. Kiểm tra 5 File Animation Clip tự nhiên (Idle, Walk, Run, Idle_LookAround, Idle_CrossArms)
+            string idlePath = "Assets/_Project/Animations/Clips/Idle.anim";
+            string walkPath = "Assets/_Project/Animations/Clips/Walk.anim";
+            string runPath = "Assets/_Project/Animations/Clips/Run.anim";
+            string lookPath = "Assets/_Project/Animations/Clips/Idle_LookAround.anim";
+            string crossPath = "Assets/_Project/Animations/Clips/Idle_CrossArms.anim";
+
+            Assert(File.Exists(idlePath) && File.Exists(walkPath) && File.Exists(runPath),
+                "Bộ 3 Animation Clip Locomotion cơ bản (Idle thở, Walk bước chân, Run chạy) tồn tại");
+            Assert(File.Exists(lookPath) && File.Exists(crossPath),
+                "Bộ Animation Clip Idle Variations tự phát (LookAround, CrossArms) tồn tại");
+
+            // 6. Kiểm tra Player_AnimatorController với m_IKPass = 1
+            RuntimeAnimatorController ctrl = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/_Project/Animations/Player_AnimatorController.controller");
+            Assert(ctrl != null, "Tồn tại Player_AnimatorController có Blend Tree Locomotion và IK Pass");
         }
 
         private static void Assert(bool condition, string testName)
