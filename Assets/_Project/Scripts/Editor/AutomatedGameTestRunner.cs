@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -8,6 +9,7 @@ using HueCity.Camera;
 using HueCity.Core;
 using HueCity.NPC;
 using HueCity.Player;
+using HueCity.Traffic;
 using HueCity.Vehicle;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -58,6 +60,13 @@ namespace HueCity.EditorTools
                 RealismOverhaulSetup.EnsureFullSetup();
                 LocomotionClipGenerator.EnsureClipsAndController();
 
+                // Đảm bảo Scene Giai đoạn 4: Phase4_LivingCity.unity đã sẵn sàng
+                string phase4ScenePath = "Assets/_Project/Scenes/Phase4_LivingCity.unity";
+                if (!File.Exists(phase4ScenePath) && !EditorApplication.isPlaying)
+                {
+                    Phase4SceneBuilder.BuildScene(true);
+                }
+
                 TestAssetIntegrity();
                 TestPlayerMechanics();
                 TestVehicleMechanics();
@@ -69,6 +78,7 @@ namespace HueCity.EditorTools
                 TestMCPPackageInstallation();
                 TestDayNightCycle();
                 TestRealismAndLightingURP();
+                TestPhase4LivingCityTrafficAndNPC();
             }
             catch (Exception ex)
             {
@@ -477,6 +487,103 @@ namespace HueCity.EditorTools
 
             Material headlightMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Headlights.mat");
             Assert(headlightMat != null, "Tồn tại Material Đèn pha phát sáng: MAT_Vehicle_Headlights.mat");
+        }
+
+        private static void TestPhase4LivingCityTrafficAndNPC()
+        {
+            LogSection("12. KIỂM THỬ GIAI ĐOẠN 4: THỔI HỒN THÀNH PHỐ (TRAFFIC & LIVING CITY)");
+
+            // 1. Kiểm tra Mạng lưới Waypoint
+            GameObject wpParent = new GameObject("Test_WP_Network");
+            GameObject wpObj1 = new GameObject("WP1");
+            wpObj1.transform.SetParent(wpParent.transform);
+            TrafficWaypoint wp1 = wpObj1.AddComponent<TrafficWaypoint>();
+            wp1.SetStopPoint(true);
+            wp1.SetDirection(TrafficDirection.NorthSouth);
+            wp1.SetSpeedLimit(8.0f);
+
+            GameObject wpObj2 = new GameObject("WP2");
+            wpObj2.transform.SetParent(wpParent.transform);
+            wpObj2.transform.position = new Vector3(0f, 0f, 10f);
+            TrafficWaypoint wp2 = wpObj2.AddComponent<TrafficWaypoint>();
+
+            wp1.AddNextWaypoint(wp2);
+
+            Assert(wp1.IsIntersectionStopPoint == true, "TrafficWaypoint: Cờ điểm dừng stop-line được thiết lập chính xác");
+            Assert(wp1.Direction == TrafficDirection.NorthSouth, "TrafficWaypoint: Hướng lưu thông trục Bắc-Nam (NorthSouth) gán chuẩn");
+            Assert(wp1.SpeedLimit == 8.0f, "TrafficWaypoint: Giới hạn tốc độ được gán đúng thông số");
+            Assert(wp1.GetNextWaypoint() == wp2, "TrafficWaypoint: Liên kết mạng lưới điểm tiếp theo hoạt động chuẩn xác");
+
+            // 2. Kiểm tra Hệ thống Đèn giao thông ngã tư (TrafficLightController)
+            GameObject lightObj = new GameObject("Test_TrafficLightController");
+            TrafficLightController lightCtrl = lightObj.AddComponent<TrafficLightController>();
+
+            // Phase 0: NS Green, EW Red
+            lightCtrl.SetPhase(0);
+            Assert(lightCtrl.NorthSouthState == TrafficLightState.Green && lightCtrl.EastWestState == TrafficLightState.Red,
+                "TrafficLightController Phase 0: Trục Bắc-Nam đèn Xanh, Trục Đông-Tây đèn Đỏ");
+            Assert(lightCtrl.CanPass(TrafficDirection.NorthSouth) == true,
+                "TrafficLightController: Phương tiện hướng Bắc-Nam được phép qua khi đèn Xanh");
+            Assert(lightCtrl.CanPass(TrafficDirection.EastWest) == false,
+                "TrafficLightController: Phương tiện hướng Đông-Tây bị dừng lại khi đèn Đỏ");
+
+            // Phase 1: NS Yellow, EW Red
+            lightCtrl.SetPhase(1);
+            Assert(lightCtrl.NorthSouthState == TrafficLightState.Yellow && lightCtrl.EastWestState == TrafficLightState.Red,
+                "TrafficLightController Phase 1: Trục Bắc-Nam chuyển Vàng chuẩn bị dừng");
+            Assert(lightCtrl.CanPass(TrafficDirection.NorthSouth) == false,
+                "TrafficLightController: Xe hướng Bắc-Nam không được vượt khi đèn Vàng");
+
+            // Phase 2: NS Red, EW Green
+            lightCtrl.SetPhase(2);
+            Assert(lightCtrl.NorthSouthState == TrafficLightState.Red && lightCtrl.EastWestState == TrafficLightState.Green,
+                "TrafficLightController Phase 2: Trục Bắc-Nam đèn Đỏ, Trục Đông-Tây đèn Xanh");
+            Assert(lightCtrl.CanPass(TrafficDirection.NorthSouth) == false,
+                "TrafficLightController: Xe hướng Bắc-Nam dừng tuyệt đối khi đèn Đỏ");
+            Assert(lightCtrl.CanPass(TrafficDirection.EastWest) == true,
+                "TrafficLightController: Xe hướng Đông-Tây thông suốt khi đèn Xanh");
+
+            // 3. Kiểm tra Trí tuệ Xe cộ (TrafficVehicleAI) & Cảm biến phanh
+            GameObject vehicleObj = new GameObject("Test_TrafficVehicleAI");
+            Rigidbody vRb = vehicleObj.AddComponent<Rigidbody>();
+            TrafficVehicleAI vehicleAI = vehicleObj.AddComponent<TrafficVehicleAI>();
+            vehicleAI.Initialize(wp1, 0f);
+
+            Assert(vehicleAI.CurrentWaypoint == wp1, "TrafficVehicleAI: Khởi tạo bám Waypoint ban đầu chính xác");
+            Assert(vehicleAI.CurrentSpeed == 0f, "TrafficVehicleAI: Khởi tạo tốc độ ban đầu chuẩn xác");
+            Assert(vehicleAI.IsBlocked == false, "TrafficVehicleAI: Trạng thái kẹt xe ban đầu là False");
+
+            // 4. Kiểm tra Object Pool xe giao thông (TrafficPoolManager)
+            GameObject poolObj = new GameObject("Test_TrafficPoolManager");
+            TrafficPoolManager poolMgr = poolObj.AddComponent<TrafficPoolManager>();
+            List<TrafficWaypoint> starts = new List<TrafficWaypoint>() { wp1 };
+            poolMgr.InitializeWithPrefabs(new GameObject[] { vehicleObj }, starts, poolSize: 4);
+
+            Assert(poolMgr.PoolCount == 4, "TrafficPoolManager: Khởi tạo Object Pool thành công với 4 xe giao thông");
+            Assert(poolMgr.ActiveCount <= poolMgr.PoolCount, "TrafficPoolManager: Số lượng xe hoạt động không vượt quá dung lượng Pool");
+
+            // Dọn dẹp đối tượng test tạm
+            UnityEngine.Object.DestroyImmediate(wpParent);
+            UnityEngine.Object.DestroyImmediate(lightObj);
+            UnityEngine.Object.DestroyImmediate(poolObj);
+            UnityEngine.Object.DestroyImmediate(vehicleObj);
+
+            // 5. Kiểm tra Tích hợp Animation cho NPCController
+            GameObject npcTest = new GameObject("Test_NPC_Animator");
+            NavMeshAgent nma = npcTest.AddComponent<NavMeshAgent>();
+            NPCController npcCtrl = npcTest.AddComponent<NPCController>();
+            Assert(npcCtrl != null && nma != null, "NPCController: Tích hợp đầy đủ NavMeshAgent và bộ FSM 5 trạng thái");
+            UnityEngine.Object.DestroyImmediate(npcTest);
+
+            // 6. Kiểm tra Scene Giai đoạn 4: Phase4_LivingCity.unity
+            string phase4Path = "Assets/_Project/Scenes/Phase4_LivingCity.unity";
+            Assert(File.Exists(phase4Path), "Tồn tại file Scene Giai đoạn 4: Phase4_LivingCity.unity");
+
+            // 7. Kiểm tra Prefab Xe cộ & Nhân vật chi tiết trong Scene
+            string taxiFbx = "Assets/_Project/Models/Car_Sedan_01.fbx";
+            string charFbx = "Assets/_Project/Models/Character_Player.fbx";
+            Assert(File.Exists(taxiFbx), "Mô hình xe ô tô Sedan chi tiết Car_Sedan_01.fbx có mặt");
+            Assert(File.Exists(charFbx), "Mô hình nhân vật người chân thực Character_Player.fbx có mặt");
         }
 
         private static void Assert(bool condition, string testName)

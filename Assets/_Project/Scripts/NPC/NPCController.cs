@@ -22,6 +22,7 @@ namespace HueCity.NPC
         [SerializeField] private float wanderRadius = 25f;
 
         private NavMeshAgent agent;
+        private Animator animator;
         private NPCState currentState = NPCState.Wander;
         private float stateTimer = 0f;
         private ActivityPoint currentActivityPoint;
@@ -32,6 +33,7 @@ namespace HueCity.NPC
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+            animator = GetComponentInChildren<Animator>();
         }
 
         public void RegisterStimulusListener()
@@ -96,6 +98,23 @@ namespace HueCity.NPC
                 case NPCState.Confront:
                     UpdateConfrontState();
                     break;
+            }
+
+            UpdateAnimator();
+        }
+
+        private void UpdateAnimator()
+        {
+            if (animator == null)
+            {
+                animator = GetComponentInChildren<Animator>();
+            }
+
+            if (animator != null && agent != null)
+            {
+                float speed = agent.velocity.magnitude;
+                animator.SetFloat("Speed", speed, 0.15f, Time.deltaTime);
+                animator.SetBool("IsGrounded", true);
             }
         }
 
