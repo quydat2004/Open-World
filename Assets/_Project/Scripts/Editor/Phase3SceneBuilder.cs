@@ -29,15 +29,29 @@ namespace HueCity.EditorTools
         [InitializeOnLoadMethod]
         private static void AutoEnsureSceneBuiltOnCompile()
         {
+            EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
+            {
+                if (state == PlayModeStateChange.EnteredEditMode)
+                {
+                    EditorApplication.delayCall += () =>
+                    {
+                        Debug.Log("[HueCity] Đã chuyển về Edit Mode. Tự động đồng bộ Scene Giai đoạn 3...");
+                        BuildScene(true);
+                    };
+                }
+            };
+
             EditorApplication.delayCall += () =>
             {
-                string markerPath = "Temp/Phase3_Realism_Built.marker";
-                if (!File.Exists(markerPath))
+                if (EditorApplication.isPlaying)
                 {
-                    File.WriteAllText(markerPath, "built");
-                    Debug.Log("[HueCity] Tự động khởi tạo và lưu Scene Lát cắt dọc Giai đoạn 3 (Realism Overhaul)...");
-                    BuildScene(true);
+                    Debug.Log("[HueCity] Phát hiện Unity đang ở Play Mode. Đang dừng Play Mode để cập nhật Scene...");
+                    EditorApplication.isPlaying = false;
+                    return;
                 }
+
+                Debug.Log("[HueCity] Tự động đồng bộ và xây dựng Scene Lát cắt dọc Giai đoạn 3 (Master Realism)...");
+                BuildScene(true);
             };
         }
 
@@ -107,6 +121,9 @@ namespace HueCity.EditorTools
 
             // 6. Xây dựng Cấu trúc Đường & Vỉa hè có Chiều sâu PBR (Hạng mục 2)
             SetupPBRRoadAndSidewalkDepth(intersectionInstance);
+
+            // 6b. Bố trí Dãy Nhà phố Modular Chân thực 3 tầng (House_Modular_01.fbx)
+            SpawnModularShophouses();
 
             // 7. Bake NavMesh tự động cho toàn bộ vỉa hè, vạch đi bộ và lòng đường ngã tư
             UnityEditor.AI.NavMeshBuilder.BuildNavMesh();
@@ -353,6 +370,65 @@ namespace HueCity.EditorTools
             }
         }
 
+        private static void SpawnModularShophouses()
+        {
+            string houseFbxPath = "Assets/_Project/Models/House_Modular_01.fbx";
+            GameObject housePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(houseFbxPath);
+            if (housePrefab == null)
+            {
+                Debug.LogWarning($"[HueCity] Chưa tìm thấy prefab nhà modular tại {houseFbxPath}");
+                return;
+            }
+
+            GameObject houseGroup = new GameObject("Modular_Shophouses_Blocks");
+
+            // Bố trí các căn nhà phố dọc theo mép lùi vỉa hè (mỗi căn rộng 5m, sâu 10m, cao 10.5m)
+            // Hướng mặt tiền quay ra trục đường chính (trục X và Z)
+            var housePlacements = new (Vector3 pos, float rotY)[]
+            {
+                // Khu phố Đông Bắc (mặt tiền hướng Nam về phía lòng đường)
+                (new Vector3(15.0f, 0.15f, 18.0f), 0f),
+                (new Vector3(20.5f, 0.15f, 18.0f), 0f),
+                (new Vector3(26.0f, 0.15f, 18.0f), 0f),
+
+                // Khu phố Tây Bắc (mặt tiền hướng Nam về phía lòng đường)
+                (new Vector3(-15.0f, 0.15f, 18.0f), 0f),
+                (new Vector3(-20.5f, 0.15f, 18.0f), 0f),
+
+                // Khu phố Đông Nam (mặt tiền hướng Bắc về phía lòng đường)
+                (new Vector3(15.0f, 0.15f, -18.0f), 180f),
+                (new Vector3(20.5f, 0.15f, -18.0f), 180f),
+
+                // Khu phố Tây Nam (mặt tiền hướng Bắc về phía lòng đường)
+                (new Vector3(-15.0f, 0.15f, -18.0f), 180f),
+                (new Vector3(-20.5f, 0.15f, -18.0f), 180f)
+            };
+
+            for (int i = 0; i < housePlacements.Length; i++)
+            {
+                var p = housePlacements[i];
+                GameObject house = (GameObject)PrefabUtility.InstantiatePrefab(housePrefab);
+                house.name = $"House_Modular_{i + 1:D2}";
+                house.transform.SetParent(houseGroup.transform);
+                house.transform.position = p.pos;
+                house.transform.rotation = Quaternion.Euler(0f, p.rotY, 0f);
+
+                // Gán MeshCollider và đánh dấu Static để bake NavMesh và cản nhân vật
+                MeshFilter[] mfs = house.GetComponentsInChildren<MeshFilter>(true);
+                foreach (var mf in mfs)
+                {
+                    if (mf.sharedMesh != null && mf.GetComponent<Collider>() == null)
+                    {
+                        MeshCollider mc = mf.gameObject.AddComponent<MeshCollider>();
+                        mc.sharedMesh = mf.sharedMesh;
+                    }
+                    GameObjectUtility.SetStaticEditorFlags(mf.gameObject, StaticEditorFlags.NavigationStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic);
+                }
+            }
+
+            Debug.Log($"[HueCity] Đã bố trí {housePlacements.Length} căn Nhà phố Modular 3 tầng (House_Modular_01.fbx) vào các góc phố!");
+        }
+
         private static void SetupCollidersAndNavigation(GameObject root)
         {
             MeshFilter[] meshFilters = root.GetComponentsInChildren<MeshFilter>(true);
@@ -378,7 +454,11 @@ namespace HueCity.EditorTools
             GameObject player = new GameObject("Player_Character");
             player.transform.position = spawnPos;
 
-            string charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
+            string charFbxPath = "Assets/_Project/Models/Character_Player.fbx";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath) == null)
+            {
+                charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
+            }
             GameObject charPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath);
             GameObject visualObj = null;
 
@@ -401,10 +481,27 @@ namespace HueCity.EditorTools
                 }
 
                 // Cấu hình Avatar từ Humanoid Model
+                Avatar avatar = null;
                 Animator prefabAnim = charPrefab.GetComponent<Animator>();
-                if (prefabAnim != null && prefabAnim.avatar != null)
+                if (prefabAnim != null && prefabAnim.avatar != null && prefabAnim.avatar.isValid)
                 {
-                    animator.avatar = prefabAnim.avatar;
+                    avatar = prefabAnim.avatar;
+                }
+                if (avatar == null)
+                {
+                    UnityEngine.Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(charFbxPath);
+                    foreach (var a in subAssets)
+                    {
+                        if (a is Avatar av && av.isValid)
+                        {
+                            avatar = av;
+                            break;
+                        }
+                    }
+                }
+                if (avatar != null)
+                {
+                    animator.avatar = avatar;
                 }
             }
 
@@ -439,7 +536,11 @@ namespace HueCity.EditorTools
             CarController carController = taxi.AddComponent<CarController>();
             taxi.AddComponent<VehicleSeat>();
 
-            string taxiFbxPath = "Assets/_Project/Models/Vehicle_Taxi_Hue.fbx";
+            string taxiFbxPath = "Assets/_Project/Models/Car_Sedan_01.fbx";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(taxiFbxPath) == null)
+            {
+                taxiFbxPath = "Assets/_Project/Models/Vehicle_Taxi_Hue.fbx";
+            }
             GameObject taxiPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(taxiFbxPath);
 
             Transform wheelFL_Mesh = null;
@@ -641,7 +742,11 @@ namespace HueCity.EditorTools
             GameObject poolObj = new GameObject("NPCPoolManager");
             NPCPoolManager poolMgr = poolObj.AddComponent<NPCPoolManager>();
 
-            string charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
+            string charFbxPath = "Assets/_Project/Models/Character_Player.fbx";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath) == null)
+            {
+                charFbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
+            }
             GameObject charPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(charFbxPath);
 
             Color[] shirtColors = new Color[]
@@ -665,6 +770,24 @@ namespace HueCity.EditorTools
                     GameObject visual = (GameObject)PrefabUtility.InstantiatePrefab(charPrefab);
                     visual.transform.SetParent(npc.transform);
                     visual.transform.localPosition = Vector3.zero;
+
+                    Animator anim = visual.GetComponent<Animator>();
+                    if (anim == null) anim = visual.AddComponent<Animator>();
+
+                    RuntimeAnimatorController animController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/_Project/Animations/Player_AnimatorController.controller");
+                    if (animController != null) anim.runtimeAnimatorController = animController;
+
+                    Avatar avatar = null;
+                    Animator prefabAnim = charPrefab.GetComponent<Animator>();
+                    if (prefabAnim != null && prefabAnim.avatar != null && prefabAnim.avatar.isValid) avatar = prefabAnim.avatar;
+                    if (avatar == null)
+                    {
+                        foreach (var a in AssetDatabase.LoadAllAssetsAtPath(charFbxPath))
+                        {
+                            if (a is Avatar av && av.isValid) { avatar = av; break; }
+                        }
+                    }
+                    if (avatar != null) anim.avatar = avatar;
                 }
                 else
                 {

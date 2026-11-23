@@ -364,25 +364,33 @@ namespace HueCity.EditorTools
 
         public static void SetupHumanoidCharacterImporter()
         {
-            string fbxPath = "Assets/_Project/Models/Character_Humanoid_Rigged.fbx";
-            ModelImporter importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
-            if (importer != null)
+            string[] fbxPaths = new string[]
             {
-                bool changed = false;
-                if (importer.animationType != ModelImporterAnimationType.Human)
+                "Assets/_Project/Models/Character_Player.fbx",
+                "Assets/_Project/Models/Character_Humanoid_Rigged.fbx"
+            };
+
+            foreach (var fbxPath in fbxPaths)
+            {
+                ModelImporter importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
+                if (importer != null)
                 {
-                    importer.animationType = ModelImporterAnimationType.Human;
-                    changed = true;
-                }
-                if (importer.avatarSetup != ModelImporterAvatarSetup.CreateFromThisModel)
-                {
-                    importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-                    changed = true;
-                }
-                if (changed)
-                {
-                    importer.SaveAndReimport();
-                    Debug.Log("[HueCity] Đã cấu hình ModelImporter sang Humanoid Rig cho Character_Humanoid_Rigged.fbx!");
+                    bool changed = false;
+                    if (importer.animationType != ModelImporterAnimationType.Human)
+                    {
+                        importer.animationType = ModelImporterAnimationType.Human;
+                        changed = true;
+                    }
+                    if (importer.avatarSetup != ModelImporterAvatarSetup.CreateFromThisModel)
+                    {
+                        importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+                        changed = true;
+                    }
+                    if (changed)
+                    {
+                        importer.SaveAndReimport();
+                        Debug.Log($"[HueCity] Đã cấu hình ModelImporter sang Humanoid Rig cho {fbxPath}!");
+                    }
                 }
             }
         }
@@ -409,53 +417,208 @@ namespace HueCity.EditorTools
             if (!hasGrounded) controller.AddParameter("IsGrounded", AnimatorControllerParameterType.Bool);
             if (!hasJump) controller.AddParameter("Jump", AnimatorControllerParameterType.Trigger);
 
-            // Thiết lập Blend Tree cho Locomotion (Idle -> Walk -> Run)
+            // Nạp hoặc trích xuất/tạo mới các AnimationClips có đường cong cử động chân thực
+            AnimationClip idleClip = GetOrExtractMotionClip("Idle", "Assets/_Project/Models/Character_Player.fbx");
+            AnimationClip walkClip = GetOrExtractMotionClip("Walk", "Assets/_Project/Models/Character_Player.fbx");
+            AnimationClip runClip = GetOrExtractMotionClip("Run", "Assets/_Project/Models/Character_Player.fbx");
+
+            // Thiết lập hoặc cập nhật Blend Tree cho Locomotion (Idle -> Walk -> Run)
             AnimatorStateMachine rootSm = controller.layers[0].stateMachine;
             ChildAnimatorState locomotionChild = Array.Find(rootSm.states, s => s.state.name == "Locomotion");
             
+            AnimatorState locState;
+            BlendTree blendTree;
+
             if (locomotionChild.state == null)
             {
-                AnimatorState locState = controller.CreateBlendTreeInController("Locomotion", out BlendTree blendTree);
+                locState = controller.CreateBlendTreeInController("Locomotion", out blendTree);
                 locState.name = "Locomotion";
                 blendTree.name = "Locomotion_1D_BlendTree";
                 blendTree.blendType = BlendTreeType.Simple1D;
                 blendTree.blendParameter = "Speed";
-
-                // Tìm kiếm Animation Clips nếu người dùng đã bỏ vào Assets/_Project/Animations/Clips/
-                AnimationClip idleClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Idle.anim")
-                                       ?? AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Idle.fbx");
-                AnimationClip walkClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Walk.anim")
-                                       ?? AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Walk.fbx");
-                AnimationClip runClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Run.anim")
-                                      ?? AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Run.fbx");
-
-                // Tạo placeholder clip nếu chưa có file
-                if (idleClip == null) idleClip = EnsurePlaceholderClip("Idle_Placeholder");
-                if (walkClip == null) walkClip = EnsurePlaceholderClip("Walk_Placeholder");
-                if (runClip == null) runClip = EnsurePlaceholderClip("Run_Placeholder");
-
-                blendTree.AddChild(idleClip, 0.0f);
-                blendTree.AddChild(walkClip, 1.5f);
-                blendTree.AddChild(runClip, 4.5f);
-
                 rootSm.defaultState = locState;
             }
+            else
+            {
+                locState = locomotionChild.state;
+                blendTree = locState.motion as BlendTree;
+                if (blendTree == null)
+                {
+                    blendTree = new BlendTree();
+                    blendTree.name = "Locomotion_1D_BlendTree";
+                    blendTree.blendType = BlendTreeType.Simple1D;
+                    blendTree.blendParameter = "Speed";
+                    SafeAddSubAsset(blendTree, controller);
+                    locState.motion = blendTree;
+                }
+            }
 
+            // Xóa các motion cũ và gán lại motion có chuyển động chân thực
+            blendTree.children = new ChildMotion[0];
+            blendTree.AddChild(idleClip, 0.0f);
+            blendTree.AddChild(walkClip, 1.5f);
+            blendTree.AddChild(runClip, 4.5f);
+
+            EditorUtility.SetDirty(blendTree);
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
+            Debug.Log("[HueCity] Đã cập nhật Locomotion Blend Tree với các Animation Clips chân thực (Idle, Walk, Run)!");
             return controller;
         }
 
-        private static AnimationClip EnsurePlaceholderClip(string clipName)
+        private static AnimationClip GetOrExtractMotionClip(string clipName, string fbxSourcePath)
         {
-            string clipPath = $"Assets/_Project/Animations/Clips/{clipName}.anim";
-            AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
-            if (clip == null)
+            string destPath = $"Assets/_Project/Animations/Clips/{clipName}.anim";
+            
+            // 1. Thử tìm clip nhúng trong FBX
+            UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(fbxSourcePath);
+            foreach (var a in assets)
             {
-                clip = new AnimationClip();
-                clip.name = clipName;
-                AssetDatabase.CreateAsset(clip, clipPath);
+                if (a is AnimationClip fbClip && fbClip.name.IndexOf(clipName, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    AnimationClip extracted = new AnimationClip();
+                    EditorUtility.CopySerialized(fbClip, extracted);
+                    extracted.name = clipName;
+                    AnimationClipSettings s = AnimationUtility.GetAnimationClipSettings(extracted);
+                    s.loopTime = true;
+                    AnimationUtility.SetAnimationClipSettings(extracted, s);
+                    AssetDatabase.CreateAsset(extracted, destPath);
+                    Debug.Log($"[HueCity] Đã trích xuất AnimationClip '{clipName}' từ FBX sang {destPath}!");
+                    return extracted;
+                }
             }
+
+            // 2. Tạo Procedural Humanoid Muscle Clip nếu chưa có file hợp lệ
+            AnimationClip clip = new AnimationClip();
+            clip.name = clipName;
+
+            if (clipName == "Idle")
+            {
+                Keyframe[] keys = new Keyframe[]
+                {
+                    new Keyframe(0f, 0f, 0f, 0.12f),
+                    new Keyframe(1.2f, 0.10f, 0f, 0f),
+                    new Keyframe(2.4f, 0f, -0.12f, 0f)
+                };
+                clip.SetCurve("", typeof(Animator), "Spine Front-Back", new AnimationCurve(keys));
+                clip.SetCurve("", typeof(Animator), "Chest Front-Back", new AnimationCurve(keys));
+            }
+            else if (clipName == "Walk")
+            {
+                Keyframe[] lLegKeys = new Keyframe[]
+                {
+                    new Keyframe(0.00f,  0.42f),
+                    new Keyframe(0.25f,  0.10f),
+                    new Keyframe(0.50f, -0.38f),
+                    new Keyframe(0.75f, -0.10f),
+                    new Keyframe(1.00f,  0.42f)
+                };
+                Keyframe[] rLegKeys = new Keyframe[]
+                {
+                    new Keyframe(0.00f, -0.38f),
+                    new Keyframe(0.25f, -0.10f),
+                    new Keyframe(0.50f,  0.42f),
+                    new Keyframe(0.75f,  0.10f),
+                    new Keyframe(1.00f, -0.38f)
+                };
+                Keyframe[] lKneeKeys = new Keyframe[]
+                {
+                    new Keyframe(0.00f,  0.10f),
+                    new Keyframe(0.25f,  0.30f),
+                    new Keyframe(0.50f,  0.05f),
+                    new Keyframe(0.75f,  0.75f),
+                    new Keyframe(1.00f,  0.10f)
+                };
+                Keyframe[] rKneeKeys = new Keyframe[]
+                {
+                    new Keyframe(0.00f,  0.05f),
+                    new Keyframe(0.25f,  0.75f),
+                    new Keyframe(0.50f,  0.10f),
+                    new Keyframe(0.75f,  0.30f),
+                    new Keyframe(1.00f,  0.05f)
+                };
+                Keyframe[] lArmKeys = new Keyframe[]
+                {
+                    new Keyframe(0.00f, -0.35f),
+                    new Keyframe(0.50f,  0.35f),
+                    new Keyframe(1.00f, -0.35f)
+                };
+                Keyframe[] rArmKeys = new Keyframe[]
+                {
+                    new Keyframe(0.00f,  0.35f),
+                    new Keyframe(0.50f, -0.35f),
+                    new Keyframe(1.00f,  0.35f)
+                };
+
+                clip.SetCurve("", typeof(Animator), "Left Upper Leg Front-Back", new AnimationCurve(lLegKeys));
+                clip.SetCurve("", typeof(Animator), "Right Upper Leg Front-Back", new AnimationCurve(rLegKeys));
+                clip.SetCurve("", typeof(Animator), "Left Lower Leg Stretch", new AnimationCurve(lKneeKeys));
+                clip.SetCurve("", typeof(Animator), "Right Lower Leg Stretch", new AnimationCurve(rKneeKeys));
+                clip.SetCurve("", typeof(Animator), "Left Arm Front-Back", new AnimationCurve(lArmKeys));
+                clip.SetCurve("", typeof(Animator), "Right Arm Front-Back", new AnimationCurve(rArmKeys));
+            }
+            else if (clipName == "Run")
+            {
+                Keyframe[] lLegKeys = new Keyframe[]
+                {
+                    new Keyframe(0.000f,  0.75f),
+                    new Keyframe(0.162f,  0.20f),
+                    new Keyframe(0.325f, -0.60f),
+                    new Keyframe(0.487f, -0.15f),
+                    new Keyframe(0.650f,  0.75f)
+                };
+                Keyframe[] rLegKeys = new Keyframe[]
+                {
+                    new Keyframe(0.000f, -0.60f),
+                    new Keyframe(0.162f, -0.15f),
+                    new Keyframe(0.325f,  0.75f),
+                    new Keyframe(0.487f,  0.20f),
+                    new Keyframe(0.650f, -0.60f)
+                };
+                Keyframe[] lKneeKeys = new Keyframe[]
+                {
+                    new Keyframe(0.000f,  0.20f),
+                    new Keyframe(0.162f,  0.45f),
+                    new Keyframe(0.325f,  0.10f),
+                    new Keyframe(0.487f,  0.95f),
+                    new Keyframe(0.650f,  0.20f)
+                };
+                Keyframe[] rKneeKeys = new Keyframe[]
+                {
+                    new Keyframe(0.000f,  0.10f),
+                    new Keyframe(0.162f,  0.95f),
+                    new Keyframe(0.325f,  0.20f),
+                    new Keyframe(0.487f,  0.45f),
+                    new Keyframe(0.650f,  0.10f)
+                };
+                Keyframe[] lArmKeys = new Keyframe[]
+                {
+                    new Keyframe(0.000f, -0.65f),
+                    new Keyframe(0.325f,  0.65f),
+                    new Keyframe(0.650f, -0.65f)
+                };
+                Keyframe[] rArmKeys = new Keyframe[]
+                {
+                    new Keyframe(0.000f,  0.65f),
+                    new Keyframe(0.325f, -0.65f),
+                    new Keyframe(0.650f,  0.65f)
+                };
+
+                clip.SetCurve("", typeof(Animator), "Left Upper Leg Front-Back", new AnimationCurve(lLegKeys));
+                clip.SetCurve("", typeof(Animator), "Right Upper Leg Front-Back", new AnimationCurve(rLegKeys));
+                clip.SetCurve("", typeof(Animator), "Left Lower Leg Stretch", new AnimationCurve(lKneeKeys));
+                clip.SetCurve("", typeof(Animator), "Right Lower Leg Stretch", new AnimationCurve(rKneeKeys));
+                clip.SetCurve("", typeof(Animator), "Left Arm Front-Back", new AnimationCurve(lArmKeys));
+                clip.SetCurve("", typeof(Animator), "Right Arm Front-Back", new AnimationCurve(rArmKeys));
+                clip.SetCurve("", typeof(Animator), "Spine Front-Back", AnimationCurve.Constant(0f, 0.65f, 0.20f));
+            }
+
+            AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = true;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+
+            AssetDatabase.CreateAsset(clip, destPath);
+            Debug.Log($"[HueCity] Đã tạo Procedural Locomotion Clip '{clipName}' có đầy đủ chuyển động bước chân!");
             return clip;
         }
     }

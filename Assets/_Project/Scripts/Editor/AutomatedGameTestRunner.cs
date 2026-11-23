@@ -56,6 +56,7 @@ namespace HueCity.EditorTools
             {
                 // Đảm bảo cấu hình URP, Post-Processing và PBR Materials đã sẵn sàng trước khi test
                 RealismOverhaulSetup.EnsureFullSetup();
+                LocomotionClipGenerator.EnsureClipsAndController();
 
                 TestAssetIntegrity();
                 TestPlayerMechanics();
@@ -104,6 +105,9 @@ namespace HueCity.EditorTools
             string[] requiredModels = new string[]
             {
                 "Assets/_Project/Models/Hue_Vertical_Slice_Detailed.fbx",
+                "Assets/_Project/Models/House_Modular_01.fbx",
+                "Assets/_Project/Models/Car_Sedan_01.fbx",
+                "Assets/_Project/Models/Character_Player.fbx",
                 "Assets/_Project/Models/Character_Humanoid_Rigged.fbx",
                 "Assets/_Project/Models/Vehicle_Taxi_Hue.fbx",
                 "Assets/_Project/Models/Vehicle_Scooter.fbx",
@@ -459,6 +463,13 @@ namespace HueCity.EditorTools
             // 6. Kiểm tra Animator Controller và Blend Tree Locomotion (Hạng mục 1)
             RuntimeAnimatorController animCtrl = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/_Project/Animations/Player_AnimatorController.controller");
             Assert(animCtrl != null, "Tồn tại Player_AnimatorController với Blend Tree Locomotion");
+
+            AnimationClip idle = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Idle.anim");
+            AnimationClip walk = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Walk.anim");
+            AnimationClip run = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/_Project/Animations/Clips/Run.anim");
+            Assert(idle != null && !idle.empty, "Tồn tại AnimationClip Idle có đường cong nhịp thở");
+            Assert(walk != null && !walk.empty, "Tồn tại AnimationClip Walk có đường cong bước chân so le");
+            Assert(run != null && !run.empty, "Tồn tại AnimationClip Run có đường cong chạy nước rút");
 
             // 7. Kiểm tra Vật liệu Xe cộ & Đèn pha URP Lit (Hạng mục 3)
             Material carPaint = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/MAT_Vehicle_Paint.mat");

@@ -1,10 +1,13 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 10:14:16
+  Thời gian: 2026-11-23 13:18:04
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
   [PASS] Model tồn tại và hợp lệ: Hue_Vertical_Slice_Detailed.fbx
+  [PASS] Model tồn tại và hợp lệ: House_Modular_01.fbx
+  [PASS] Model tồn tại và hợp lệ: Car_Sedan_01.fbx
+  [PASS] Model tồn tại và hợp lệ: Character_Player.fbx
   [PASS] Model tồn tại và hợp lệ: Character_Humanoid_Rigged.fbx
   [PASS] Model tồn tại và hợp lệ: Vehicle_Taxi_Hue.fbx
   [PASS] Model tồn tại và hợp lệ: Vehicle_Scooter.fbx
@@ -37,7 +40,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 16.7s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 20.3s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -71,9 +74,12 @@
   [PASS] Bộ Texture PBR Nhựa đường Poly Haven thật (Albedo & Normal) tồn tại
   [PASS] Bộ Texture PBR Vỉa hè Poly Haven thật (Albedo & Normal) tồn tại
   [PASS] Tồn tại Player_AnimatorController với Blend Tree Locomotion
+  [PASS] Tồn tại AnimationClip Idle có đường cong nhịp thở
+  [PASS] Tồn tại AnimationClip Walk có đường cong bước chân so le
+  [PASS] Tồn tại AnimationClip Run có đường cong chạy nước rút
   [PASS] Tồn tại Material Sơn bóng xe Taxi Vàng: MAT_Vehicle_Paint.mat
   [PASS] Tồn tại Material Đèn pha phát sáng: MAT_Vehicle_Headlights.mat
 
 ================================================================================
-  TỔNG KẾT: 59 PASSED, 0 FAILED (Thời gian chạy: 205.0ms)
+  TỔNG KẾT: 65 PASSED, 0 FAILED (Thời gian chạy: 486.3ms)
 ================================================================================
