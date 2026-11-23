@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 10:02:44
+  Thời gian: 2026-11-23 10:14:16
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -37,7 +37,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 18.8s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 16.7s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -70,7 +70,10 @@
   [PASS] Tồn tại Material Vạch phân làn kép Vàng: MAT_RoadMarking_Yellow.mat
   [PASS] Bộ Texture PBR Nhựa đường Poly Haven thật (Albedo & Normal) tồn tại
   [PASS] Bộ Texture PBR Vỉa hè Poly Haven thật (Albedo & Normal) tồn tại
+  [PASS] Tồn tại Player_AnimatorController với Blend Tree Locomotion
+  [PASS] Tồn tại Material Sơn bóng xe Taxi Vàng: MAT_Vehicle_Paint.mat
+  [PASS] Tồn tại Material Đèn pha phát sáng: MAT_Vehicle_Headlights.mat
 
 ================================================================================
-  TỔNG KẾT: 56 PASSED, 0 FAILED (Thời gian chạy: 36.5ms)
+  TỔNG KẾT: 59 PASSED, 0 FAILED (Thời gian chạy: 205.0ms)
 ================================================================================
