@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+#pragma warning disable CS0618
 using Cinemachine;
 using HueCity.Camera;
 using HueCity.NPC;
