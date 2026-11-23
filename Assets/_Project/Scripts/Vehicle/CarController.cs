@@ -38,6 +38,8 @@ namespace HueCity.Vehicle
         private bool isBraking;
 
         public float CurrentSpeedKmh => rb != null ? rb.velocity.magnitude * 3.6f : 0f;
+        public bool IsBraking => isBraking;
+        public float CurrentThrottle => currentThrottle;
 
         private void Awake()
         {

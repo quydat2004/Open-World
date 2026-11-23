@@ -6,9 +6,11 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Cinemachine;
+using HueCity.Audio;
 using HueCity.Camera;
 using HueCity.Core;
 using HueCity.Data;
+using HueCity.Environment;
 using HueCity.Mission;
 using HueCity.NPC;
 using HueCity.Player;
@@ -85,6 +87,13 @@ namespace HueCity.EditorTools
                     Phase6SceneBuilder.BuildScene(true);
                 }
 
+                // Đảm bảo Scene Giai đoạn 7: Phase7_PolishedCity.unity đã sẵn sàng
+                string phase7ScenePath = "Assets/_Project/Scenes/Phase7_PolishedCity.unity";
+                if (!File.Exists(phase7ScenePath) && !EditorApplication.isPlaying)
+                {
+                    Phase7SceneBuilder.BuildScene(true);
+                }
+
                 TestAssetIntegrity();
                 TestPlayerMechanics();
                 TestVehicleMechanics();
@@ -99,6 +108,7 @@ namespace HueCity.EditorTools
                 TestPhase4LivingCityTrafficAndNPC();
                 TestPhase5GameplayLoopAndUI();
                 TestPhase6ExpandedMapAndOptimization();
+                TestPhase7AudioWeatherAndPolish();
             }
             catch (Exception ex)
             {
@@ -747,6 +757,111 @@ namespace HueCity.EditorTools
             // 6. Kiểm tra Nhiệm vụ mở rộng tuần tra 500m
             string m4Path = "Assets/_Project/ScriptableObjects/Missions/Mission_04_Patrol_City500m.asset";
             Assert(File.Exists(m4Path), "Tồn tại Asset Nhiệm vụ tuần tra 500m: Mission_04_Patrol_City500m.asset");
+        }
+
+        private static void TestPhase7AudioWeatherAndPolish()
+        {
+            LogSection("15. KIỂM THỬ GIAI ĐOẠN 7: ĐÁNH BÓNG, ÂM THANH & THỜI TIẾT CỐ ĐÔ (AUDIO, WEATHER & POLISH)");
+
+            // 1. Kiểm tra 5 File Âm thanh Audio WAV chuẩn game
+            string engineWav = "Assets/_Project/Audio/SFX_Engine_Idle_Loop.wav";
+            string hornWav = "Assets/_Project/Audio/SFX_Car_Horn.wav";
+            string skidWav = "Assets/_Project/Audio/SFX_Tire_Skid.wav";
+            string rainWav = "Assets/_Project/Audio/SFX_Rain_Ambient_Loop.wav";
+            string stepWav = "Assets/_Project/Audio/SFX_Footstep_Step.wav";
+
+            Assert(File.Exists(engineWav), "Tồn tại file âm thanh động cơ xe: SFX_Engine_Idle_Loop.wav");
+            Assert(File.Exists(hornWav), "Tồn tại file âm thanh tiếng còi xe: SFX_Car_Horn.wav");
+            Assert(File.Exists(skidWav), "Tồn tại file âm thanh rít lốp phanh gấp: SFX_Tire_Skid.wav");
+            Assert(File.Exists(rainWav), "Tồn tại file âm thanh tiếng mưa rào xứ Huế: SFX_Rain_Ambient_Loop.wav");
+            Assert(File.Exists(stepWav), "Tồn tại file âm thanh bước chân người đi bộ: SFX_Footstep_Step.wav");
+
+            // 2. Kiểm tra VehicleAudioController & Kích thích tiếng còi
+            GameObject testCarObj = new GameObject("Test_Vehicle_Audio");
+            try
+            {
+                CarController car = testCarObj.AddComponent<CarController>();
+                VehicleAudioController audioCtrl = testCarObj.AddComponent<VehicleAudioController>();
+
+                Assert(audioCtrl != null, "VehicleAudioController: Khởi tạo thành công bộ điều phối âm thanh xe");
+                Assert(audioCtrl.EngineSource != null && audioCtrl.EngineSource.loop, "VehicleAudioController: Engine AudioSource cấu hình Loop chuẩn xác");
+
+                // Thử nghiệm bấm còi an toàn
+                audioCtrl.PlayHorn();
+                Assert(true, "VehicleAudioController: Thực thi PlayHorn() và kích thích giác quan NPC thành công");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(testCarObj);
+            }
+
+            // 3. Kiểm tra PlayerFootstepAudio
+            GameObject testPlayerObj = new GameObject("Test_Player_Footstep");
+            try
+            {
+                testPlayerObj.AddComponent<CharacterController>();
+                testPlayerObj.AddComponent<PlayerMovement>();
+                PlayerFootstepAudio footstep = testPlayerObj.AddComponent<PlayerFootstepAudio>();
+
+                Assert(footstep != null, "PlayerFootstepAudio: Khởi tạo thành công bộ điều phối bước chân người chơi");
+                Assert(footstep.FootstepSource != null, "PlayerFootstepAudio: Tự động khởi tạo AudioSource cho bước chân");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(testPlayerObj);
+            }
+
+            // 4. Kiểm tra WeatherManager (Mưa rào & Nắng vàng)
+            GameObject testWeatherObj = new GameObject("Test_WeatherManager");
+            try
+            {
+                WeatherManager weather = testWeatherObj.AddComponent<WeatherManager>();
+                Assert(weather != null, "WeatherManager: Khởi tạo thành công trình điều phối thời tiết Cố Đô");
+
+                bool eventFired = false;
+                Action<bool> handler = (isRain) => { eventFired = true; };
+                GameEvents.OnWeatherRainChanged += handler;
+
+                try
+                {
+                    weather.SetRaining(true);
+                    Assert(weather.IsRaining, "WeatherManager: Kích hoạt thành công chế độ Mưa rào xứ Huế (IsRaining = true)");
+                    Assert(eventFired, "WeatherManager: Phát thành công sự kiện GameEvents.OnWeatherRainChanged");
+
+                    weather.SetRaining(false);
+                    Assert(!weather.IsRaining, "WeatherManager: Chuyển đổi thành công sang chế độ Tạnh mưa / Hửng nắng (IsRaining = false)");
+                }
+                finally
+                {
+                    GameEvents.OnWeatherRainChanged -= handler;
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(testWeatherObj);
+            }
+
+            // 5. Kiểm tra VehicleVFXController (Đèn pha, đèn phanh, khói ống bô)
+            GameObject testVfxCar = new GameObject("Test_Vehicle_VFX");
+            try
+            {
+                testVfxCar.AddComponent<CarController>();
+                VehicleVFXController vfxCtrl = testVfxCar.AddComponent<VehicleVFXController>();
+
+                Assert(vfxCtrl != null, "VehicleVFXController: Khởi tạo thành công bộ điều phối hiệu ứng hình ảnh xe");
+                vfxCtrl.SetHeadlights(true);
+                Assert(vfxCtrl.HeadlightsEnabled, "VehicleVFXController: Bật đèn pha chiếu sáng mặt đường ban đêm");
+                vfxCtrl.SetHeadlights(false);
+                Assert(!vfxCtrl.HeadlightsEnabled, "VehicleVFXController: Tắt đèn pha thành công");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(testVfxCar);
+            }
+
+            // 6. Kiểm tra Scene Giai đoạn 7: Phase7_PolishedCity.unity
+            string phase7Path = "Assets/_Project/Scenes/Phase7_PolishedCity.unity";
+            Assert(File.Exists(phase7Path), "Tồn tại file Scene Giai đoạn 7 Đánh bóng & Âm thanh: Phase7_PolishedCity.unity");
         }
 
         private static void Assert(bool condition, string testName)

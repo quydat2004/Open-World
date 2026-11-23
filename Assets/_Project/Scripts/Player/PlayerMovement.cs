@@ -29,6 +29,8 @@ namespace HueCity.Player
 
         public bool IsGrounded => characterController.isGrounded;
         public float CurrentHorizontalSpeed { get; private set; }
+        public bool IsMoving => CurrentHorizontalSpeed > 0.15f;
+        public bool IsSprinting => inputHandler != null && inputHandler.IsSprinting && IsMoving;
 
         private void Awake()
         {

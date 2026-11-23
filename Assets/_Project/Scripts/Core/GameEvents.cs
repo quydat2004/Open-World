@@ -66,5 +66,13 @@ namespace HueCity.Core
             Color bannerColor = color ?? Color.white;
             OnNotificationRequested?.Invoke(message, duration, bannerColor);
         }
+
+        // 5. Sự kiện Thời tiết & Môi trường
+        public static event Action<bool> OnWeatherRainChanged; // isRaining
+
+        public static void TriggerWeatherRainChanged(bool isRaining)
+        {
+            OnWeatherRainChanged?.Invoke(isRaining);
+        }
     }
 }
