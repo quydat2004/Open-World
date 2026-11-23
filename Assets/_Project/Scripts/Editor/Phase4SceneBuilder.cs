@@ -520,10 +520,17 @@ namespace HueCity.EditorTools
             SerializedProperty prop = so.FindProperty(propertyName);
             if (prop != null)
             {
-                prop.FindPropertyRelative("leftWheelCollider").objectReferenceValue = leftCol;
-                prop.FindPropertyRelative("rightWheelCollider").objectReferenceValue = rightCol;
-                prop.FindPropertyRelative("leftWheelMesh").objectReferenceValue = leftMesh;
-                prop.FindPropertyRelative("rightWheelMesh").objectReferenceValue = rightMesh;
+                var lw = prop.FindPropertyRelative("leftWheel") ?? prop.FindPropertyRelative("leftWheelCollider");
+                if (lw != null) lw.objectReferenceValue = leftCol;
+
+                var rw = prop.FindPropertyRelative("rightWheel") ?? prop.FindPropertyRelative("rightWheelCollider");
+                if (rw != null) rw.objectReferenceValue = rightCol;
+
+                var lm = prop.FindPropertyRelative("leftMesh") ?? prop.FindPropertyRelative("leftWheelMesh");
+                if (lm != null) lm.objectReferenceValue = leftMesh;
+
+                var rm = prop.FindPropertyRelative("rightMesh") ?? prop.FindPropertyRelative("rightWheelMesh");
+                if (rm != null) rm.objectReferenceValue = rightMesh;
             }
         }
 

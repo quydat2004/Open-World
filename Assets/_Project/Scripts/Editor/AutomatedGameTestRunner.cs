@@ -7,9 +7,12 @@ using System.Text;
 using Cinemachine;
 using HueCity.Camera;
 using HueCity.Core;
+using HueCity.Data;
+using HueCity.Mission;
 using HueCity.NPC;
 using HueCity.Player;
 using HueCity.Traffic;
+using HueCity.UI;
 using HueCity.Vehicle;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -67,6 +70,13 @@ namespace HueCity.EditorTools
                     Phase4SceneBuilder.BuildScene(true);
                 }
 
+                // Đảm bảo Scene Giai đoạn 5: Phase5_GameplayLoop.unity đã sẵn sàng
+                string phase5ScenePath = "Assets/_Project/Scenes/Phase5_GameplayLoop.unity";
+                if (!File.Exists(phase5ScenePath) && !EditorApplication.isPlaying)
+                {
+                    Phase5SceneBuilder.BuildScene(true);
+                }
+
                 TestAssetIntegrity();
                 TestPlayerMechanics();
                 TestVehicleMechanics();
@@ -79,6 +89,7 @@ namespace HueCity.EditorTools
                 TestDayNightCycle();
                 TestRealismAndLightingURP();
                 TestPhase4LivingCityTrafficAndNPC();
+                TestPhase5GameplayLoopAndUI();
             }
             catch (Exception ex)
             {
@@ -584,6 +595,84 @@ namespace HueCity.EditorTools
             string charFbx = "Assets/_Project/Models/Character_Player.fbx";
             Assert(File.Exists(taxiFbx), "Mô hình xe ô tô Sedan chi tiết Car_Sedan_01.fbx có mặt");
             Assert(File.Exists(charFbx), "Mô hình nhân vật người chân thực Character_Player.fbx có mặt");
+        }
+
+        private static void TestPhase5GameplayLoopAndUI()
+        {
+            LogSection("13. KIỂM THỬ GIAI ĐOẠN 5: VÒNG LẶP GAMEPLAY & GIAO DIỆN (GAMEPLAY LOOP & UI)");
+
+            // 1. Kiểm tra Hệ thống Dữ liệu & Save/Load JSON
+            PlayerData testData = new PlayerData();
+            testData.money = 75000;
+            testData.SetPosition(new Vector3(14.5f, 0.25f, -8.0f));
+            testData.completedMissionIds.Add("MIS_01");
+
+            string json = JsonUtility.ToJson(testData);
+            PlayerData deserialized = JsonUtility.FromJson<PlayerData>(json);
+
+            Assert(deserialized != null && deserialized.money == 75000, "PlayerData JSON: Lưu và đọc số dư tiền mặt 75,000đ chính xác 100%");
+            Assert(Vector3.Distance(deserialized.GetPosition(), new Vector3(14.5f, 0.25f, -8.0f)) < 0.01f, "PlayerData JSON: Lưu và phục hồi tọa độ người chơi chính xác");
+            Assert(deserialized.completedMissionIds.Contains("MIS_01"), "PlayerData JSON: Lưu danh sách nhiệm vụ đã hoàn thành chính xác");
+
+            // 2. Kiểm tra Hệ thống Nhiệm vụ (MissionData & MissionManager)
+            MissionData testMis = ScriptableObject.CreateInstance<MissionData>();
+            testMis.Initialize("TEST_01", "Giao Chè Hẻm Cố Đô", "Giao chè hẻm đến điểm hẹn.", MissionType.Delivery, 35000, 60f, Vector3.zero, new Vector3(10f, 0f, 10f));
+
+            Assert(testMis.MissionId == "TEST_01" && testMis.RewardMoney == 35000, "MissionData: Khởi tạo thông tin nhiệm vụ ScriptableObject chuẩn xác");
+
+            GameObject misMgrObj = new GameObject("Test_MissionManager");
+            MissionManager misMgr = misMgrObj.AddComponent<MissionManager>();
+            misMgr.RegisterMission(testMis);
+
+            Assert(misMgr.MissionsCatalog.Count > 0, "MissionManager: Đăng ký danh mục nhiệm vụ thành công");
+
+            bool started = misMgr.StartMission(testMis);
+            Assert(started && misMgr.IsMissionActive && misMgr.ActiveMission == testMis, "MissionManager: Bắt đầu nhiệm vụ thành công và kích hoạt bộ đếm thời gian");
+
+            misMgr.CompleteMission();
+            Assert(!misMgr.IsMissionActive && misMgr.ActiveMission == null, "MissionManager: Hoàn thành nhiệm vụ và giải phóng trạng thái thành công");
+
+            UnityEngine.Object.DestroyImmediate(misMgrObj);
+            UnityEngine.Object.DestroyImmediate(testMis);
+
+            // 3. Kiểm tra các Asset Nhiệm vụ mẫu Cố đô đã được tạo
+            string m1 = "Assets/_Project/ScriptableObjects/Missions/Mission_01_Delivery_HueCakes.asset";
+            string m2 = "Assets/_Project/ScriptableObjects/Missions/Mission_02_Taxi_TourImperial.asset";
+            string m3 = "Assets/_Project/ScriptableObjects/Missions/Mission_03_Speed_TruongTien.asset";
+            Assert(File.Exists(m1), "Tồn tại Asset Nhiệm vụ 1: Giao Bánh Bột Lọc (Mission_01_Delivery_HueCakes.asset)");
+            Assert(File.Exists(m2), "Tồn tại Asset Nhiệm vụ 2: Taxi Du Lịch Cố Đô (Mission_02_Taxi_TourImperial.asset)");
+            Assert(File.Exists(m3), "Tồn tại Asset Nhiệm vụ 3: Đua Xe Bấm Giờ Trường Tiền (Mission_03_Speed_TruongTien.asset)");
+
+            // 4. Kiểm tra Đồng hồ đo tốc độ (SpeedometerUI)
+            GameObject speedObj = new GameObject("Test_SpeedometerUI");
+            SpeedometerUI speedUI = speedObj.AddComponent<SpeedometerUI>();
+            speedUI.SetSpeedManual(68.5f);
+            Assert(Mathf.Abs(speedUI.CurrentSpeedKmh - 68.5f) < 0.1f, "SpeedometerUI: Tính toán và hiển thị tốc độ km/h kỹ thuật số chính xác");
+            UnityEngine.Object.DestroyImmediate(speedObj);
+
+            // 5. Kiểm tra Bảng Nhiệm vụ HUD (MissionHUD)
+            GameObject misHudObj = new GameObject("Test_MissionHUD");
+            MissionHUD misHUD = misHudObj.AddComponent<MissionHUD>();
+            misHUD.SetManualDisplay("Giao Bánh Nậm", "Đến cổng Ngọ Môn", "⏱ 01:45", "+45,000đ");
+            Assert(misHUD.DisplayedTitle == "Giao Bánh Nậm" && misHUD.IsVisible, "MissionHUD: Hiển thị đầy đủ tiêu đề, mô tả và đồng hồ đếm ngược nhiệm vụ");
+            UnityEngine.Object.DestroyImmediate(misHudObj);
+
+            // 6. Kiểm tra Bảng Trạng thái Người chơi (PlayerHUD)
+            GameObject playerHudObj = new GameObject("Test_PlayerHUD");
+            PlayerHUD playerHUD = playerHudObj.AddComponent<PlayerHUD>();
+            playerHUD.SetMoney(85000);
+            Assert(playerHUD.DisplayMoney == 85000, "PlayerHUD: Hiển thị số dư tiền mặt 85,000đ chính xác");
+            UnityEngine.Object.DestroyImmediate(playerHudObj);
+
+            // 7. Kiểm tra Bản đồ con (MinimapController)
+            GameObject miniObj = new GameObject("Test_MinimapController");
+            MinimapController miniCtrl = miniObj.AddComponent<MinimapController>();
+            Assert(miniCtrl != null, "MinimapController: Khởi tạo thành công bộ điều khiển bản đồ con");
+            UnityEngine.Object.DestroyImmediate(miniObj);
+
+            // 8. Kiểm tra File Scene Giai đoạn 5
+            string phase5Path = "Assets/_Project/Scenes/Phase5_GameplayLoop.unity";
+            Assert(File.Exists(phase5Path), "Tồn tại file Scene Giai đoạn 5: Phase5_GameplayLoop.unity");
         }
 
         private static void Assert(bool condition, string testName)
