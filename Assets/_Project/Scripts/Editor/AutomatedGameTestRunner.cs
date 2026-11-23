@@ -60,6 +60,7 @@ namespace HueCity.EditorTools
                 TestCameraAndEvents();
                 TestDataAndPersistence();
                 TestMCPPackageInstallation();
+                TestDayNightCycle();
             }
             catch (Exception ex)
             {
@@ -345,6 +346,33 @@ namespace HueCity.EditorTools
                 string manifestContent = File.ReadAllText(manifestPath);
                 bool hasMcp = manifestContent.Contains("com.coplaydev.unity-mcp");
                 Assert(hasMcp, "Gói com.coplaydev.unity-mcp đã được khai báo chính thức trong manifest");
+            }
+        }
+
+        private static void TestDayNightCycle()
+        {
+            LogSection("10. Kiểm tra Chu kỳ Ngày / Đêm (Day/Night Cycle)");
+
+            GameObject lightObj = new GameObject("Test_SunLight");
+            try
+            {
+                Light sunLight = lightObj.AddComponent<Light>();
+                sunLight.type = LightType.Directional;
+                DayNightCycle cycle = lightObj.AddComponent<DayNightCycle>();
+
+                Assert(cycle != null, "Khởi tạo thành công component DayNightCycle");
+
+                cycle.SetTimeOfDay(12.0f);
+                Assert(Mathf.Abs(cycle.CurrentHour - 12.0f) < 0.01f && !cycle.IsNight, 
+                    "Cấu hình 12:00 trưa thành công (IsNight == false)");
+
+                cycle.SetTimeOfDay(21.0f);
+                Assert(Mathf.Abs(cycle.CurrentHour - 21.0f) < 0.01f && cycle.IsNight, 
+                    "Cấu hình 21:00 đêm thành công (IsNight == true)");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(lightObj);
             }
         }
 

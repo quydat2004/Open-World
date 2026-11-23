@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
+using System.IO;
 using Cinemachine;
 using HueCity.Camera;
+using HueCity.Core;
 using HueCity.NPC;
 using HueCity.Player;
 using HueCity.Vehicle;
@@ -12,8 +14,28 @@ using UnityEngine.SceneManagement;
 
 namespace HueCity.EditorTools
 {
+    /// <summary>
+    /// Trình dựng Scene Lát cắt dọc chi tiết (Vertical Slice Scene Builder) cho TP. Huế - Giai đoạn 3.
+    /// Dựng hoàn chỉnh 1 ngã tư biểu tượng: 4 kiểu kiến trúc Huế, đường nhựa & vạch Zebra, đèn giao thông,
+    /// bồn cây, quán cà phê vỉa hè, dây điện đô thị, biển báo tên đường, hệ thống Ngày/Đêm và 18 NPC.
+    /// </summary>
     public static class Phase3SceneBuilder
     {
+        [InitializeOnLoadMethod]
+        private static void AutoEnsureSceneBuiltOnCompile()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                string markerPath = "Temp/Phase3_V3_Built.marker";
+                if (!File.Exists(markerPath))
+                {
+                    File.WriteAllText(markerPath, "built");
+                    Debug.Log("[HueCity] Tự động khởi tạo và lưu Scene Lát cắt dọc Giai đoạn 3...");
+                    BuildScene(true);
+                }
+            };
+        }
+
         [MenuItem("HueCity/Build Phase 3 Vertical Slice Scene", false, 30)]
         public static void BuildScene()
         {
@@ -25,18 +47,21 @@ namespace HueCity.EditorTools
             // 1. Tạo scene mới
             Scene newScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-            // 2. Thiết lập Ánh sáng Điện ảnh & Nắng vàng Cố Đô (Golden Hour Lighting)
+            // 2. Thiết lập Ánh sáng Điện ảnh & Chu kỳ Ngày/Đêm (Day/Night Cycle)
             GameObject lightObj = new GameObject("Directional Light - Hue Sun");
             Light sunLight = lightObj.AddComponent<Light>();
             sunLight.type = LightType.Directional;
-            sunLight.color = new Color(1.0f, 0.93f, 0.82f); // Ánh nắng vàng ấm đặc trưng miền Trung
+            sunLight.color = new Color(1.0f, 0.88f, 0.65f); // Nắng vàng ấm đặc trưng miền Trung
             sunLight.intensity = 1.35f;
             sunLight.shadows = LightShadows.Soft;
             lightObj.transform.rotation = Quaternion.Euler(42f, -38f, 0f);
 
+            DayNightCycle dayNight = lightObj.AddComponent<DayNightCycle>();
+            dayNight.SetTimeOfDay(17.0f); // Bắt đầu ở Giờ Vàng (Golden Hour) hoàng hôn Huế
+
             // Thêm Ambient Light ấm áp
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.35f, 0.38f, 0.45f);
+            RenderSettings.ambientLight = new Color(0.38f, 0.40f, 0.46f);
 
             // 3. Hệ thống Quản lý Giác quan thế giới
             GameObject stimulusObj = new GameObject("WorldStimulusManager");
@@ -75,13 +100,16 @@ namespace HueCity.EditorTools
             // 8. Đặt các phương tiện văn hóa và quán cà phê vỉa hè
             SpawnStreetCultureProps();
 
-            // 9. Tạo Đám đông NPC (18 NPC đi dạo, qua vạch đi bộ, ngồi quán nước)
+            // 9. Dây điện chằng chịt đô thị & Biển báo giao thông đường phố Huế
+            SetupUrbanStreetCablesAndSigns();
+
+            // 10. Tạo Đám đông NPC (18 NPC đi dạo, qua vạch đi bộ, ngồi quán nước)
             SetupNPCCrowd(player);
 
-            // 10. Thiết lập Cinemachine Camera
+            // 11. Thiết lập Cinemachine Camera
             CreateCameraSetup(player, taxi);
 
-            // 11. Lưu Scene vào Assets/_Project/Scenes/Phase3_VerticalSlice.unity
+            // 12. Lưu Scene vào Assets/_Project/Scenes/Phase3_VerticalSlice.unity
             string scenePath = "Assets/_Project/Scenes/Phase3_VerticalSlice.unity";
             EditorSceneManager.SaveScene(newScene, scenePath);
             AssetDatabase.Refresh();
@@ -93,7 +121,10 @@ namespace HueCity.EditorTools
                     "Đã hoàn thành Lát cắt dọc 1 ngã tư biểu tượng TP. Huế!\n\n" +
                     "• Đường sá chân thực: Nhựa đường sẫm, vạch kẻ đường, vạch Zebra người đi bộ, bó vỉa đá granite.\n" +
                     "• Kiến trúc thực tế: Nhà ống hiện đại (cửa cuốn, ban công kính, bồn inox, điều hòa), Biệt thự Pháp vôi vàng ngói đỏ, Khách sạn góc phố sang trọng, Quán cà phê mái hiên bạt.\n" +
+                    "• Dây điện đô thị & Biển báo đường Hùng Vương / Lê Lợi.\n" +
+                    "• Chu kỳ Ngày/Đêm (Day/Night Cycle) với nắng vàng hoàng hôn Cố Đô.\n" +
                     "• Đèn giao thông, đèn cổ điển ven sông, bồn cây xanh bóng mát.\n" +
+                    "• 18 NPC FSM thông minh đi bộ & ngồi quán nước.\n" +
                     "• Bấm Play để trải nghiệm!", "Playtest Ngay");
             }
         }
@@ -157,76 +188,70 @@ namespace HueCity.EditorTools
 
         private static GameObject CreateTaxiObject(Vector3 spawnPos)
         {
+            GameObject taxi = new GameObject("Taxi_Hue_XanhSM");
+            taxi.transform.position = spawnPos;
+            taxi.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+
+            Rigidbody rb = taxi.AddComponent<Rigidbody>();
+            rb.mass = 1650f;
+            rb.drag = 0.05f;
+            rb.angularDrag = 0.05f;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+            BoxCollider bc = taxi.AddComponent<BoxCollider>();
+            bc.size = new Vector3(1.9f, 1.4f, 4.4f);
+            bc.center = new Vector3(0f, 0.8f, 0f);
+
+            CarController carController = taxi.AddComponent<CarController>();
+            taxi.AddComponent<VehicleSeat>();
+
             string taxiFbxPath = "Assets/_Project/Models/Vehicle_Taxi_Hue.fbx";
             GameObject taxiPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(taxiFbxPath);
 
-            GameObject car;
+            Transform wheelFL_Mesh = null;
+            Transform wheelFR_Mesh = null;
+            Transform wheelRL_Mesh = null;
+            Transform wheelRR_Mesh = null;
+
             if (taxiPrefab != null)
             {
-                car = (GameObject)PrefabUtility.InstantiatePrefab(taxiPrefab);
-                car.name = "Vehicle_Taxi_Hue";
-                car.transform.position = spawnPos;
-                car.transform.rotation = Quaternion.Euler(0f, 180f, 0f); // Hướng vào ngã tư
+                GameObject taxiVisual = (GameObject)PrefabUtility.InstantiatePrefab(taxiPrefab);
+                taxiVisual.name = "Visual_Taxi";
+                taxiVisual.transform.SetParent(taxi.transform);
+                taxiVisual.transform.localPosition = Vector3.zero;
+                taxiVisual.transform.localRotation = Quaternion.identity;
+
+                wheelFL_Mesh = taxiVisual.transform.Find("Wheel_FL");
+                wheelFR_Mesh = taxiVisual.transform.Find("Wheel_FR");
+                wheelRL_Mesh = taxiVisual.transform.Find("Wheel_RL");
+                wheelRR_Mesh = taxiVisual.transform.Find("Wheel_RR");
             }
-            else
-            {
-                car = new GameObject("Car_Fallback");
-                car.transform.position = spawnPos;
-            }
 
-            Rigidbody rb = car.GetComponent<Rigidbody>();
-            if (rb == null) rb = car.AddComponent<Rigidbody>();
-            rb.mass = 1450f;
-            rb.drag = 0.05f;
-            rb.angularDrag = 1.6f;
-
-            BoxCollider col = car.GetComponent<BoxCollider>();
-            if (col == null) col = car.AddComponent<BoxCollider>();
-            col.size = new Vector3(1.85f, 0.9f, 4.4f);
-            col.center = new Vector3(0f, 0.65f, 0f);
-
-            GameObject exitPt = new GameObject("DriverExitPoint");
-            exitPt.transform.SetParent(car.transform);
-            exitPt.transform.localPosition = new Vector3(-2.2f, 0f, 0f);
-
-            float trackHalf = 0.85f;
-            float baseHalf = 1.35f;
-            WheelCollider flCol = CreateWheelCollider(car.transform, "WheelCol_FL", new Vector3(-trackHalf, 0.34f, baseHalf));
-            WheelCollider frCol = CreateWheelCollider(car.transform, "WheelCol_FR", new Vector3(trackHalf, 0.34f, baseHalf));
-            WheelCollider rlCol = CreateWheelCollider(car.transform, "WheelCol_RL", new Vector3(-trackHalf, 0.34f, -baseHalf));
-            WheelCollider rrCol = CreateWheelCollider(car.transform, "WheelCol_RR", new Vector3(trackHalf, 0.34f, -baseHalf));
-
-            Transform flMesh = car.transform.Find("Wheel_FL");
-            Transform frMesh = car.transform.Find("Wheel_FR");
-            Transform rlMesh = car.transform.Find("Wheel_RL");
-            Transform rrMesh = car.transform.Find("Wheel_RR");
-
-            CarController carController = car.AddComponent<CarController>();
-            VehicleSeat seat = car.AddComponent<VehicleSeat>();
+            // Gắn 4 WheelColliders
+            WheelCollider wheelFL = CreateWheelCollider(taxi.transform, "Col_Wheel_FL", new Vector3(-0.85f, 0.38f, 1.35f));
+            WheelCollider wheelFR = CreateWheelCollider(taxi.transform, "Col_Wheel_FR", new Vector3(0.85f, 0.38f, 1.35f));
+            WheelCollider wheelRL = CreateWheelCollider(taxi.transform, "Col_Wheel_RL", new Vector3(-0.85f, 0.38f, -1.35f));
+            WheelCollider wheelRR = CreateWheelCollider(taxi.transform, "Col_Wheel_RR", new Vector3(0.85f, 0.38f, -1.35f));
 
             SerializedObject carSo = new SerializedObject(carController);
-            SetWheelPair(carSo, "frontWheels", flCol, frCol, flMesh, frMesh);
-            SetWheelPair(carSo, "rearWheels", rlCol, rrCol, rlMesh, rrMesh);
+            SetWheelPair(carSo, "frontWheels", wheelFL, wheelFR, wheelFL_Mesh, wheelFR_Mesh);
+            SetWheelPair(carSo, "rearWheels", wheelRL, wheelRR, wheelRL_Mesh, wheelRR_Mesh);
             carSo.ApplyModifiedProperties();
 
-            SerializedObject seatSo = new SerializedObject(seat);
-            seatSo.FindProperty("exitPoint").objectReferenceValue = exitPt.transform;
-            seatSo.ApplyModifiedProperties();
-
-            return car;
+            return taxi;
         }
 
         private static void SpawnStreetCultureProps()
         {
-            // Xe máy Scooter dựng chân chống trước nhà ống hiện đại
+            // Xe máy dựng chân chống bên mép vỉa hè
             string scooterPath = "Assets/_Project/Models/Vehicle_Scooter.fbx";
             GameObject scooterPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(scooterPath);
             if (scooterPrefab != null)
             {
                 GameObject scooter = (GameObject)PrefabUtility.InstantiatePrefab(scooterPrefab);
-                scooter.name = "Street_Scooter_Parked";
-                scooter.transform.position = new Vector3(12.5f, 0.25f, 5.0f);
-                scooter.transform.rotation = Quaternion.Euler(0f, 20f, 0f);
+                scooter.name = "Street_Scooter_Sidewalk";
+                scooter.transform.position = new Vector3(10.5f, 0.25f, 12.0f);
+                scooter.transform.rotation = Quaternion.Euler(0f, 75f, 0f);
                 BoxCollider bc = scooter.AddComponent<BoxCollider>();
                 bc.size = new Vector3(0.6f, 1.1f, 1.8f);
                 bc.center = new Vector3(0f, 0.55f, 0f);
@@ -267,6 +292,100 @@ namespace HueCity.EditorTools
                     }
                 }
             }
+        }
+
+        private static void SetupUrbanStreetCablesAndSigns()
+        {
+            GameObject urbanProps = new GameObject("Urban_Props_Network");
+
+            // 1. Chùm dây điện chằng chịt đặc trưng đô thị Việt Nam (Overhead Cables)
+            GameObject cableParent = new GameObject("Overhead_Electrical_Cables");
+            cableParent.transform.SetParent(urbanProps.transform);
+
+            Vector3[] startPoles = new Vector3[]
+            {
+                new Vector3(-11.5f, 6.2f, 14.5f),
+                new Vector3(11.5f, 6.2f, 14.5f),
+                new Vector3(-11.5f, 6.2f, -14.5f),
+                new Vector3(11.5f, 6.2f, -14.5f)
+            };
+
+            Vector3[] endPoles = new Vector3[]
+            {
+                new Vector3(11.5f, 6.0f, 14.5f),
+                new Vector3(11.5f, 6.0f, -14.5f),
+                new Vector3(-11.5f, 6.0f, -14.5f),
+                new Vector3(-11.5f, 6.0f, 14.5f)
+            };
+
+            Material cableMat = new Material(Shader.Find("Standard"));
+            cableMat.color = new Color(0.08f, 0.08f, 0.08f);
+            cableMat.SetFloat("_Glossiness", 0.1f);
+
+            for (int i = 0; i < startPoles.Length; i++)
+            {
+                for (int wire = 0; wire < 3; wire++)
+                {
+                    GameObject wireObj = new GameObject($"Cable_Wire_{i}_{wire}");
+                    wireObj.transform.SetParent(cableParent.transform);
+                    LineRenderer lr = wireObj.AddComponent<LineRenderer>();
+                    lr.material = cableMat;
+                    lr.startWidth = 0.032f;
+                    lr.endWidth = 0.032f;
+                    lr.positionCount = 12;
+                    lr.useWorldSpace = true;
+
+                    Vector3 p0 = startPoles[i] + new Vector3(0f, wire * 0.14f, wire * 0.06f);
+                    Vector3 p1 = endPoles[i] + new Vector3(0f, wire * 0.14f, wire * 0.06f);
+                    float sagScale = 0.60f + wire * 0.18f;
+
+                    for (int step = 0; step < 12; step++)
+                    {
+                        float t = (float)step / 11f;
+                        Vector3 pos = Vector3.Lerp(p0, p1, t);
+                        float sag = 4f * sagScale * t * (1f - t);
+                        pos.y -= sag;
+                        lr.SetPosition(step, pos);
+                    }
+                }
+            }
+
+            // 2. Biển tên đường "ĐƯỜNG HÙNG VƯƠNG" & "ĐƯỜNG LÊ LỢI"
+            CreateStreetSign(urbanProps.transform, new Vector3(10.5f, 0f, 10.5f), "Sign_HungVuong", 0f);
+            CreateStreetSign(urbanProps.transform, new Vector3(-10.5f, 0f, 10.5f), "Sign_LeLoi", 90f);
+        }
+
+        private static void CreateStreetSign(Transform parent, Vector3 position, string signName, float rotationY)
+        {
+            GameObject sign = new GameObject(signName);
+            sign.transform.SetParent(parent);
+            sign.transform.position = position;
+            sign.transform.rotation = Quaternion.Euler(0f, rotationY, 0f);
+
+            // Cột biển báo
+            GameObject pole = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pole.name = "Pole";
+            pole.transform.SetParent(sign.transform);
+            pole.transform.localPosition = new Vector3(0f, 1.4f, 0f);
+            pole.transform.localScale = new Vector3(0.08f, 1.4f, 0.08f);
+
+            Material poleMat = new Material(Shader.Find("Standard"));
+            poleMat.color = new Color(0.72f, 0.74f, 0.78f);
+            poleMat.SetFloat("_Metallic", 0.9f);
+            poleMat.SetFloat("_Glossiness", 0.4f);
+            pole.GetComponent<Renderer>().material = poleMat;
+
+            // Biển tên đường chữ nhật màu xanh biển báo
+            GameObject plate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            plate.name = "Plate";
+            plate.transform.SetParent(sign.transform);
+            plate.transform.localPosition = new Vector3(0f, 2.65f, 0f);
+            plate.transform.localScale = new Vector3(0.85f, 0.28f, 0.04f);
+
+            Material plateMat = new Material(Shader.Find("Standard"));
+            plateMat.color = new Color(0.06f, 0.28f, 0.72f); // Xanh dương biển chỉ dẫn
+            plateMat.SetFloat("_Glossiness", 0.5f);
+            plate.GetComponent<Renderer>().material = plateMat;
         }
 
         private static void SetupNPCCrowd(GameObject player)

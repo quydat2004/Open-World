@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 09:08:30
+  Thời gian: 2026-11-23 09:20:27
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -37,7 +37,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 17.9s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 22.2s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -52,5 +52,5 @@
   [PASS] Gói com.coplaydev.unity-mcp đã được khai báo chính thức trong manifest
 
 ================================================================================
-  TỔNG KẾT: 38 PASSED, 0 FAILED (Thời gian chạy: 15.4ms)
+  TỔNG KẾT: 38 PASSED, 0 FAILED (Thời gian chạy: 24.8ms)
 ================================================================================
