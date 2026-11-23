@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 15:34:18
+  Thời gian: 2026-11-23 15:50:59
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -37,10 +37,10 @@
 --- 5. Kiểm tra Hệ thống Giác quan & AI NPC (FSM) ---
   [PASS] Trạng thái khởi đầu mặc định của NPC là Wander
   [PASS] NPC nghe tiếng còi xe gần đã tự động chuyển sang trạng thái Alert (Dừng lại quan sát)
-  [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Confront)
+  [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 15.7s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 19.9s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -159,5 +159,5 @@
   [PASS] Tồn tại file Scene Toàn bộ Thành phố Huế: Phase8_HueCitywide.unity
 
 ================================================================================
-  TỔNG KẾT: 138 PASSED, 0 FAILED (Thời gian chạy: 415.6ms)
+  TỔNG KẾT: 138 PASSED, 0 FAILED (Thời gian chạy: 409.3ms)
 ================================================================================
