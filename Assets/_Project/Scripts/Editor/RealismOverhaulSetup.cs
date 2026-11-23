@@ -369,9 +369,9 @@ namespace HueCity.EditorTools
             if (importer != null)
             {
                 bool changed = false;
-                if (importer.animationType != ModelImporterAnimationType.Humanoid)
+                if (importer.animationType != ModelImporterAnimationType.Human)
                 {
-                    importer.animationType = ModelImporterAnimationType.Humanoid;
+                    importer.animationType = ModelImporterAnimationType.Human;
                     changed = true;
                 }
                 if (importer.avatarSetup != ModelImporterAvatarSetup.CreateFromThisModel)
@@ -434,9 +434,9 @@ namespace HueCity.EditorTools
                 if (walkClip == null) walkClip = EnsurePlaceholderClip("Walk_Placeholder");
                 if (runClip == null) runClip = EnsurePlaceholderClip("Run_Placeholder");
 
-                blendTree.AddAnimationClip(idleClip, 0.0f);
-                blendTree.AddAnimationClip(walkClip, 1.5f);
-                blendTree.AddAnimationClip(runClip, 4.5f);
+                blendTree.AddChild(idleClip, 0.0f);
+                blendTree.AddChild(walkClip, 1.5f);
+                blendTree.AddChild(runClip, 4.5f);
 
                 rootSm.defaultState = locState;
             }

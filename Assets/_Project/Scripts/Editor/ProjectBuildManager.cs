@@ -63,7 +63,7 @@ namespace HueCity.EditorTools
 
             PlayerSettings.productName = "HueCity - Cố Đô Mở";
             PlayerSettings.companyName = "HueCity Team";
-            PlayerSettings.defaultIsFullScreen = false;
+            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.defaultScreenWidth = 1920;
             PlayerSettings.defaultScreenHeight = 1080;
 
