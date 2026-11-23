@@ -109,6 +109,7 @@ namespace HueCity.EditorTools
                 TestPhase5GameplayLoopAndUI();
                 TestPhase6ExpandedMapAndOptimization();
                 TestPhase7AudioWeatherAndPolish();
+                TestCitywideHueMapAndGIS();
             }
             catch (Exception ex)
             {
@@ -862,6 +863,36 @@ namespace HueCity.EditorTools
             // 6. Kiểm tra Scene Giai đoạn 7: Phase7_PolishedCity.unity
             string phase7Path = "Assets/_Project/Scenes/Phase7_PolishedCity.unity";
             Assert(File.Exists(phase7Path), "Tồn tại file Scene Giai đoạn 7 Đánh bóng & Âm thanh: Phase7_PolishedCity.unity");
+        }
+
+        private static void TestCitywideHueMapAndGIS()
+        {
+            LogSection("16. KIỂM THỬ BẢN ĐỒ TOÀN THÀNH PHỐ HUẾ (CITYWIDE HUE MAP & GIS INTEGRATION)");
+
+            // 1. Kiểm tra File Dữ liệu OpenStreetMap GIS thật của TP Huế (7.68 MB)
+            string osmPath = "Assets/_Project/Hue_Citywide_OSM.xml";
+            Assert(File.Exists(osmPath), "Tồn tại file dữ liệu GIS OpenStreetMap TP Huế: Hue_Citywide_OSM.xml");
+
+            // 2. Kiểm tra File Tọa độ GeoData JSON phân tích từ OpenStreetMap
+            string geoJsonPath = "Assets/_Project/Data/HueCity_Map_GeoData.json";
+            Assert(File.Exists(geoJsonPath), "Tồn tại dữ liệu cấu trúc địa lý toàn thành phố: HueCity_Map_GeoData.json");
+
+            // 3. Kiểm tra Model 3D Cầu Trường Tiền (6 vài 12 nhịp vòm thép)
+            string bridgeModel = "Assets/_Project/Models/Bridge_TruongTien_Span.fbx";
+            Assert(File.Exists(bridgeModel), "Tồn tại mô hình 3D Cầu Trường Tiền vòm thép: Bridge_TruongTien_Span.fbx");
+
+            // 4. Kiểm tra Model 3D Kỳ Đài Huế (Cột Cờ Huế)
+            string kyDaiModel = "Assets/_Project/Models/KyDai_Hue.fbx";
+            Assert(File.Exists(kyDaiModel), "Tồn tại mô hình 3D Cột Cờ Kỳ Đài Huế: KyDai_Hue.fbx");
+
+            // 5. Kiểm tra Vật liệu Nước Sông Hương URP Lit
+            string waterMatPath = "Assets/_Project/Materials/MAT_Water_PerfumeRiver.mat";
+            Material waterMat = AssetDatabase.LoadAssetAtPath<Material>(waterMatPath);
+            Assert(waterMat != null, "Tồn tại Material Nước Sông Hương trong xanh phản chiếu: MAT_Water_PerfumeRiver.mat");
+
+            // 6. Kiểm tra Scene Hoàn chỉnh Toàn cảnh Thành phố Huế
+            string citywideScenePath = "Assets/_Project/Scenes/Phase8_HueCitywide.unity";
+            Assert(File.Exists(citywideScenePath), "Tồn tại file Scene Toàn bộ Thành phố Huế: Phase8_HueCitywide.unity");
         }
 
         private static void Assert(bool condition, string testName)

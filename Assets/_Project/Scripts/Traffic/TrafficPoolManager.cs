@@ -54,6 +54,11 @@ namespace HueCity.Traffic
         [SerializeField] private float maxDistanceToPlayer = 110.0f;
         private Transform playerTransform;
 
+        public void SetStreamingRadius(float radius)
+        {
+            maxDistanceToPlayer = radius;
+        }
+
         private void Update()
         {
             spawnTimer -= Time.deltaTime;

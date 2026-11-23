@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 14:55:15
+  Thời gian: 2026-11-23 15:27:00
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -40,7 +40,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 28.9s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 19.9s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -150,7 +150,14 @@
   [PASS] VehicleVFXController: Bật đèn pha chiếu sáng mặt đường ban đêm
   [PASS] VehicleVFXController: Tắt đèn pha thành công
   [PASS] Tồn tại file Scene Giai đoạn 7 Đánh bóng & Âm thanh: Phase7_PolishedCity.unity
+--- 16. KIỂM THỬ BẢN ĐỒ TOÀN THÀNH PHỐ HUẾ (CITYWIDE HUE MAP & GIS INTEGRATION) ---
+  [PASS] Tồn tại file dữ liệu GIS OpenStreetMap TP Huế: Hue_Citywide_OSM.xml
+  [PASS] Tồn tại dữ liệu cấu trúc địa lý toàn thành phố: HueCity_Map_GeoData.json
+  [PASS] Tồn tại mô hình 3D Cầu Trường Tiền vòm thép: Bridge_TruongTien_Span.fbx
+  [PASS] Tồn tại mô hình 3D Cột Cờ Kỳ Đài Huế: KyDai_Hue.fbx
+  [PASS] Tồn tại Material Nước Sông Hương trong xanh phản chiếu: MAT_Water_PerfumeRiver.mat
+  [PASS] Tồn tại file Scene Toàn bộ Thành phố Huế: Phase8_HueCitywide.unity
 
 ================================================================================
-  TỔNG KẾT: 132 PASSED, 0 FAILED (Thời gian chạy: 1390.1ms)
+  TỔNG KẾT: 138 PASSED, 0 FAILED (Thời gian chạy: 3763.6ms)
 ================================================================================
