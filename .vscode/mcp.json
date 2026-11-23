@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "unity": {
+      "type": "stdio",
+      "command": "C:\\Users\\QUY DAT\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.EXE",
+      "args": [
+        "--python",
+        ">=3.11",
+        "coplay-mcp-server@latest"
+      ],
+      "env": {
+        "MCP_TOOL_TIMEOUT": "720000"
+      }
+    }
+  }
+}

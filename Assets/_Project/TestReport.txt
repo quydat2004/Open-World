@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG HUECITY
-  Thời gian: 2026-11-23 00:53:20
+  Thời gian: 2026-11-23 01:21:19
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -13,7 +13,7 @@
   [PASS] Model tồn tại và hợp lệ: Map_Hue_Greybox.fbx
   [PASS] Scene tồn tại: Phase1_Greybox.unity
   [PASS] Scene tồn tại: Phase2_MapBlocking.unity
-  [FAIL] Scene tồn tại: Phase3_VerticalSlice.unity
+  [PASS] Scene tồn tại: Phase3_VerticalSlice.unity
 --- 2. Kiểm tra Logic Nhân vật (Player) ---
   [PASS] Nhân vật khởi tạo đầy đủ 4 component: CharacterController, PlayerMovement, PlayerInputHandler, PlayerInteraction
   [PASS] SetInputEnabled(false) reset triệt để toàn bộ MoveInput, Sprint, Jump
@@ -27,8 +27,20 @@
   [PASS] Nhân vật được ẩn đi khi ngồi trong cabin
   [PASS] Nhân vật được gắn làm con của Xe
   [PASS] Sự kiện GameEvents.OnPlayerEnteredVehicle được phát thanh thành công
-  [FAIL] Ngoại lệ bất ngờ trong quá trình test: Object reference not set to an instance of an object
+  [PASS] Xuống xe thành công: seat.IsOccupied == false
+  [PASS] Nhân vật được kích hoạt hiển thị trở lại
+  [PASS] Nhân vật được tách độc lập khỏi Xe
+  [PASS] Sự kiện GameEvents.OnPlayerExitedVehicle được phát thanh thành công
+--- 5. Kiểm tra Hệ thống Giác quan & AI NPC (FSM) ---
+  [PASS] Trạng thái khởi đầu mặc định của NPC là Wander
+  [PASS] NPC nghe tiếng còi xe gần đã tự động chuyển sang trạng thái Alert (Dừng lại quan sát)
+  [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
+--- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
+  [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 22.7s
+  [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
+  [PASS] Lệnh Release() giải phóng vị trí thành công
 
 ================================================================================
-  TỔNG KẾT: 19 PASSED, 2 FAILED (Thời gian chạy: 47.8ms)
+  TỔNG KẾT: 31 PASSED, 0 FAILED (Thời gian chạy: 20.7ms)
 ================================================================================
