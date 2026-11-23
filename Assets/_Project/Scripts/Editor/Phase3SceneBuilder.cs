@@ -29,29 +29,16 @@ namespace HueCity.EditorTools
         [InitializeOnLoadMethod]
         private static void AutoEnsureSceneBuiltOnCompile()
         {
-            EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
-            {
-                if (state == PlayModeStateChange.EnteredEditMode)
-                {
-                    EditorApplication.delayCall += () =>
-                    {
-                        Debug.Log("[HueCity] Đã chuyển về Edit Mode. Tự động đồng bộ Scene Giai đoạn 3...");
-                        BuildScene(true);
-                    };
-                }
-            };
-
             EditorApplication.delayCall += () =>
             {
-                if (EditorApplication.isPlaying)
+                string markerPath = "Temp/Phase3_VerticalSlice_Built.marker";
+                if (!File.Exists(markerPath))
                 {
-                    Debug.Log("[HueCity] Phát hiện Unity đang ở Play Mode. Đang dừng Play Mode để cập nhật Scene...");
-                    EditorApplication.isPlaying = false;
-                    return;
+                    if (EditorApplication.isPlayingOrWillChangePlaymode || BuildPipeline.isBuildingPlayer) return;
+                    File.WriteAllText(markerPath, "built");
+                    Debug.Log("[HueCity Phase 3] Khởi tạo Scene Giai đoạn 3 (Master Realism)...");
+                    BuildScene(true);
                 }
-
-                Debug.Log("[HueCity] Tự động đồng bộ và xây dựng Scene Lát cắt dọc Giai đoạn 3 (Master Realism)...");
-                BuildScene(true);
             };
         }
 

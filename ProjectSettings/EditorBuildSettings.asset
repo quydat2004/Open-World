@@ -12,6 +12,18 @@ EditorBuildSettings:
     path: Assets/_Project/Scenes/Phase8_HueCitywide.unity
     guid: d4945c273c73e7343b0b2a432f44573b
   - enabled: 1
+    path: Assets/_Project/Scenes/Phase7_PolishedCity.unity
+    guid: 5f3b37d219bd4714482408e04eb56f1d
+  - enabled: 1
+    path: Assets/_Project/Scenes/Phase6_ExpandedMap.unity
+    guid: 4b5d2ebdf15f15647923bddc5d6ee18c
+  - enabled: 1
+    path: Assets/_Project/Scenes/Phase5_GameplayLoop.unity
+    guid: c3dc430f0f3d8ec4798ca756d22b36ac
+  - enabled: 1
+    path: Assets/_Project/Scenes/Phase4_LivingCity.unity
+    guid: 9eb0ee939a96df34d95c8baf726005a9
+  - enabled: 1
     path: Assets/_Project/Scenes/Phase2_MapBlocking.unity
     guid: 42d981bf7cd4e1c429437a545a16b60f
   - enabled: 1

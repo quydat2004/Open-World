@@ -1,6 +1,6 @@
 ================================================================================
   BẮT ĐẦU BỘ KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN HUECITY
-  Thời gian: 2026-11-23 15:50:59
+  Thời gian: 2026-11-23 16:49:39
 ================================================================================
 
 --- 1. Kiểm tra tính toàn vẹn của Asset & Model 3D ---
@@ -40,7 +40,7 @@
   [PASS] NPC gặp nguy hiểm tai nạn đã chuyển trạng thái hợp lệ (Flee)
 --- 6. Kiểm tra Điểm Tương Tác Vỉa Hè (ActivityPoint) ---
   [PASS] Điểm tương tác ban đầu còn trống (IsOccupied == false)
-  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 19.9s
+  [PASS] TryOccupy() thành công, đặt thời gian sinh hoạt: 17.4s
   [PASS] Không cho phép 2 NPC cùng chiếm dụng 1 điểm (chống trùng lặp ghế)
   [PASS] Lệnh Release() giải phóng vị trí thành công
 --- 7. Kiểm tra Camera Switcher & Sự Kiện Game (Cinemachine) ---
@@ -157,7 +157,21 @@
   [PASS] Tồn tại mô hình 3D Cột Cờ Kỳ Đài Huế: KyDai_Hue.fbx
   [PASS] Tồn tại Material Nước Sông Hương trong xanh phản chiếu: MAT_Water_PerfumeRiver.mat
   [PASS] Tồn tại file Scene Toàn bộ Thành phố Huế: Phase8_HueCitywide.unity
+--- 17. KIỂM THỬ PIPELINE RIGGING & ANIMATION NHÂN VẬT (A-POSE, BLEND TREE & FOOT/LOOKAT IK) ---
+  [PASS] Tồn tại file lưới nhân vật A-Pose: Character_Player.fbx
+  [PASS] Tồn tại file khung xương Humanoid A-Pose 30 bones: Character_Humanoid_Rigged.fbx
+  [PASS] CharacterFootIK: Khởi tạo thành công bộ điều phối Foot IK bám dốc mặt đường
+  [PASS] CharacterFootIK: Tính năng Foot IK được bật mặc định (EnableFootIK = true)
+  [PASS] CharacterFootIK: Trọng số IK đạt 100% (IKWeight = 1.0f)
+  [PASS] CharacterLookAtIK: Khởi tạo thành công bộ điều phối giác quan LookAt IK
+  [PASS] CharacterLookAtIK: Tính năng LookAt IK được bật mặc định
+  [PASS] CharacterLookAtIK: Giới hạn góc quay cổ tự nhiên tối đa 60 độ (không xoắn cổ quá đà)
+  [PASS] NPCIdleBehavior: Khởi tạo thành công bộ điều phối cử chỉ đứng yên
+  [PASS] NPCIdleBehavior: Kích hoạt biến thể cử chỉ tự nhiên 1 (nhìn quanh đổi trọng tâm)
+  [PASS] Bộ 3 Animation Clip Locomotion cơ bản (Idle thở, Walk bước chân, Run chạy) tồn tại
+  [PASS] Bộ Animation Clip Idle Variations tự phát (LookAround, CrossArms) tồn tại
+  [PASS] Tồn tại Player_AnimatorController có Blend Tree Locomotion và IK Pass
 
 ================================================================================
-  TỔNG KẾT: 138 PASSED, 0 FAILED (Thời gian chạy: 409.3ms)
+  TỔNG KẾT: 151 PASSED, 0 FAILED (Thời gian chạy: 859.6ms)
 ================================================================================

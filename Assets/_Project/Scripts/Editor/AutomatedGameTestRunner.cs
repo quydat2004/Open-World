@@ -41,6 +41,7 @@ namespace HueCity.EditorTools
         {
             EditorApplication.delayCall += () =>
             {
+                if (EditorApplication.isPlayingOrWillChangePlaymode || BuildPipeline.isBuildingPlayer) return;
                 RunAllTests(showDialog: false);
             };
         }

@@ -49,6 +49,11 @@ namespace HueCity.EditorTools
             string[] scenes = new string[]
             {
                 "Assets/_Project/Scenes/Phase3_VerticalSlice.unity",
+                "Assets/_Project/Scenes/Phase8_HueCitywide.unity",
+                "Assets/_Project/Scenes/Phase7_PolishedCity.unity",
+                "Assets/_Project/Scenes/Phase6_ExpandedMap.unity",
+                "Assets/_Project/Scenes/Phase5_GameplayLoop.unity",
+                "Assets/_Project/Scenes/Phase4_LivingCity.unity",
                 "Assets/_Project/Scenes/Phase2_MapBlocking.unity",
                 "Assets/_Project/Scenes/Phase1_Greybox.unity"
             };
@@ -91,6 +96,21 @@ namespace HueCity.EditorTools
             reportLog.AppendLine($"Đường dẫn Executable: {exePath}");
             reportLog.AppendLine($"Tổng số lỗi (Errors): {summary.totalErrors}");
             reportLog.AppendLine($"Tổng số cảnh báo (Warnings): {summary.totalWarnings}");
+            reportLog.AppendLine("--------------------------------------------------------------------------------");
+            foreach (BuildStep step in report.steps)
+            {
+                foreach (BuildStepMessage msg in step.messages)
+                {
+                    if (msg.type == LogType.Error || msg.type == LogType.Exception)
+                    {
+                        reportLog.AppendLine($"[ERROR] [{step.name}] {msg.content}");
+                    }
+                    else if (msg.type == LogType.Warning)
+                    {
+                        reportLog.AppendLine($"[WARN] [{step.name}] {msg.content}");
+                    }
+                }
+            }
             reportLog.AppendLine("================================================================================");
 
             string buildReportPath = Path.Combine(Application.dataPath, "_Project/BuildReport.txt");
