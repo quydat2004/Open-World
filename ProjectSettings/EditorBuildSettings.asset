@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/_Project/Scenes/Phase3_VerticalSlice.unity
     guid: 37f364b380346624b9140fdc762f8c9b
   - enabled: 1
+    path: Assets/_Project/Scenes/Phase8_HueCitywide.unity
+    guid: d4945c273c73e7343b0b2a432f44573b
+  - enabled: 1
     path: Assets/_Project/Scenes/Phase2_MapBlocking.unity
     guid: 42d981bf7cd4e1c429437a545a16b60f
   - enabled: 1

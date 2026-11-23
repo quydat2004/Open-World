@@ -57,12 +57,12 @@ namespace HueCity.NPC
 
         private void OnEnable()
         {
-            GameEvents.OnStimulusEmitted += HandleStimulusEvent;
+            WorldStimulusManager.OnStimulusEmitted += HandleStimulusEvent;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnStimulusEmitted -= HandleStimulusEvent;
+            WorldStimulusManager.OnStimulusEmitted -= HandleStimulusEvent;
         }
 
         private void Update()
@@ -77,14 +77,14 @@ namespace HueCity.NPC
             }
         }
 
-        private void HandleStimulusEvent(Vector3 origin, float radius, StimulusType type, GameObject source)
+        private void HandleStimulusEvent(StimulusData data)
         {
             if (!enableLookAt) return;
 
-            float dist = Vector3.Distance(transform.position, origin);
-            if (dist <= radius)
+            float dist = Vector3.Distance(transform.position, data.Origin);
+            if (dist <= data.Radius)
             {
-                stimulusPosition = origin;
+                stimulusPosition = data.Origin;
                 hasStimulusTarget = true;
                 stimulusTimer = 3.5f; // Duy trì nhìn về phía âm thanh trong 3.5 giây
             }

@@ -61,7 +61,7 @@ namespace HueCity.EditorTools
             ModelImporter importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
             if (importer == null) return;
 
-            importer.animationType = ModelImporterAnimationType.Humanoid;
+            importer.animationType = ModelImporterAnimationType.Human;
             importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             importer.optimizeGameObjects = false;
             importer.importAnimation = true;
@@ -145,7 +145,7 @@ namespace HueCity.EditorTools
             clip.name = "Walk";
             clip.frameRate = 30f;
 
-            float duration = 1.0f; // 1 giây cho 2 bước đi bộ (120 bước/phút)
+            // 1.0f giây cho 2 bước đi bộ (120 bước/phút)
 
             // 1. Chân trái (Left Leg) vung tới trước / lui sau (±24 độ)
             AnimationCurve leftThigh = new AnimationCurve();
